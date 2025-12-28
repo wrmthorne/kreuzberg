@@ -1,0 +1,291 @@
+name: CI Elixir
+
+'on':
+  push:
+    branches: [main]
+    paths:
+      - '.github/actions/**'
+      - 'crates/kreuzberg/**'
+      - 'crates/kreuzberg-elixir/**'
+      - 'packages/elixir/**'
+      - 'e2e/elixir/**'
+      - 'test_documents/**'
+      - 'fixtures/**'
+      - 'tools/e2e-generator/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'packages/elixir/mix.exs'
+      - 'packages/elixir/mix.lock'
+      - 'scripts/ci/elixir/**'
+      - '.github/workflows/ci-elixir.yaml'
+      - '.cargo/config.toml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/actions/**'
+      - 'crates/kreuzberg/**'
+      - 'crates/kreuzberg-elixir/**'
+      - 'packages/elixir/**'
+      - 'e2e/elixir/**'
+      - 'test_documents/**'
+      - 'fixtures/**'
+      - 'tools/e2e-generator/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'packages/elixir/mix.exs'
+      - 'packages/elixir/mix.lock'
+      - 'scripts/ci/elixir/**'
+      - '.github/workflows/ci-elixir.yaml'
+      - '.cargo/config.toml'
+
+concurrency:
+  group: ci-elixir-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_PROFILE_DEV_DEBUG: 0
+  RUST_BACKTRACE: short
+  RUST_MIN_STACK: 16777216
+  PDFIUM_VERSION: "7578"
+  ORT_VERSION: "1.23.2"
+  MACOSX_DEPLOYMENT_TARGET: "14.0"
+  CARGO_TARGET_DIR: target
+  CARGO_LOG: cargo::core::compiler::fingerprint=info
+  BUILD_PROFILE: "ci"
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      elixir_matrix: ${{ steps.matrix.outputs.elixir_matrix }}
+      elixir_matrix_has_entries: ${{ steps.matrix.outputs.elixir_matrix_has_entries }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            elixir_windows:
+              - '.github/actions/**'
+              - 'crates/kreuzberg/**'
+              - 'crates/kreuzberg-elixir/**'
+              - 'packages/elixir/**'
+              - 'e2e/elixir/**'
+              - 'test_documents/**'
+              - 'fixtures/**'
+              - 'tools/e2e-generator/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - 'packages/elixir/mix.exs'
+              - 'packages/elixir/mix.lock'
+              - 'scripts/ci/elixir/*.sh'
+              - 'scripts/ci/elixir/*.ps1'
+              - '.github/workflows/ci-elixir.yaml'
+              - '.cargo/config.toml'
+            elixir_unix:
+              - '.github/actions/**'
+              - 'crates/kreuzberg/**'
+              - 'crates/kreuzberg-elixir/**'
+              - 'packages/elixir/**'
+              - 'e2e/elixir/**'
+              - 'test_documents/**'
+              - 'fixtures/**'
+              - 'tools/e2e-generator/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+              - 'packages/elixir/mix.exs'
+              - 'packages/elixir/mix.lock'
+              - 'scripts/ci/elixir/*.sh'
+              - '.github/workflows/ci-elixir.yaml'
+              - '.cargo/config.toml'
+      - name: Build matrix
+        id: matrix
+        shell: bash
+        env:
+          ELIXIR_WINDOWS: ${{ steps.filter.outputs.elixir_windows }}
+          ELIXIR_UNIX: ${{ steps.filter.outputs.elixir_unix }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          import os
+          include = []
+          if os.environ.get("ELIXIR_UNIX") == "true":
+              include.extend([
+                  {"os": "ubuntu-latest", "elixir-version": "1.14", "otp-version": "25.3"},
+                  {"os": "ubuntu-latest", "elixir-version": "1.15", "otp-version": "26.2"},
+                  {"os": "ubuntu-latest", "elixir-version": "1.16", "otp-version": "27.0"},
+                  {"os": "macos-latest", "elixir-version": "1.16", "otp-version": "27.0"},
+              ])
+          if os.environ.get("ELIXIR_WINDOWS") == "true":
+              include.append({"os": "windows-latest", "elixir-version": "1.16", "otp-version": "27.0"})
+          print(f"elixir_matrix={json.dumps({'include': include})}")
+          print(f"elixir_matrix_has_entries={'true' if include else 'false'}")
+          PY
+
+  build-and-test:
+    name: Elixir Build and Test (${{ matrix.os }}, Elixir ${{ matrix.elixir-version }}, OTP ${{ matrix.otp-version }})
+    if: ${{ github.actor != 'dependabot[bot]' && needs.changes.outputs.elixir_matrix_has_entries == 'true' }}
+    needs: changes
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.changes.outputs.elixir_matrix) }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        uses: ./.github/actions/install-system-deps
+
+      - name: Free disk space before setup
+        if: matrix.os == 'ubuntu-latest'
+        uses: ./.github/actions/free-disk-space-linux
+        with:
+          show-initial: "true"
+          show-final: "true"
+
+      - name: Setup OpenSSL
+        uses: ./.github/actions/setup-openssl
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust
+        with:
+          cache-key-prefix: elixir-${{ matrix.os }}-${{ matrix.elixir-version }}-${{ matrix.otp-version }}
+
+      - name: Setup Elixir
+        uses: erlef/setup-elixir@v1
+        with:
+          elixir-version: ${{ matrix.elixir-version }}
+          otp-version: ${{ matrix.otp-version }}
+          version-type: strict
+
+      - name: Cache PDFium
+        uses: ./.github/actions/cache-pdfium
+        with:
+          pdfium-version: ${{ env.PDFIUM_VERSION }}
+
+      - name: Download PDFium
+        uses: ./.github/actions/download-pdfium
+        with:
+          pdfium-version: ${{ env.PDFIUM_VERSION }}
+
+      - name: Stage PDFium runtime
+        uses: ./.github/actions/stage-pdfium-runtime
+        with:
+          destination: target/release
+
+      - name: Setup ONNX Runtime
+        uses: ./.github/actions/setup-onnx-runtime
+        with:
+          ort-version: ${{ env.ORT_VERSION }}
+
+      - name: Install Task
+        uses: ./.github/actions/install-task
+
+      - name: Build or restore FFI from cache
+        id: ffi
+        uses: ./.github/actions/build-and-cache-ffi
+        with:
+          platform: ${{ runner.os }}
+          ffi-crate: kreuzberg-elixir
+          cache-version: v1
+          pdfium-version: ${{ env.PDFIUM_VERSION }}
+          ort-version: ${{ env.ORT_VERSION }}
+
+      - name: Restore Elixir dependencies cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            packages/elixir/deps
+            packages/elixir/_build
+          key: elixir-deps-${{ runner.os }}-${{ matrix.elixir-version }}-${{ matrix.otp-version }}-${{ hashFiles('packages/elixir/mix.lock') }}
+          restore-keys: |
+            elixir-deps-${{ runner.os }}-${{ matrix.elixir-version }}-${{ matrix.otp-version }}-
+
+      - name: Install Elixir dependencies
+        shell: bash
+        working-directory: packages/elixir
+        run: mix deps.get
+
+      - name: Compile Elixir (warnings as errors in CI)
+        shell: bash
+        working-directory: packages/elixir
+        env:
+          MIX_ENV: test
+        run: mix compile --warnings-as-errors
+
+      - name: Run Elixir tests
+        shell: bash
+        working-directory: packages/elixir
+        run: mix test
+
+      - name: Run Elixir linter (Credo)
+        shell: bash
+        working-directory: packages/elixir
+        run: mix credo --strict
+
+      - name: Check Elixir code formatting
+        shell: bash
+        working-directory: packages/elixir
+        run: mix format --check-formatted
+
+      - name: Report FFI cache statistics
+        if: always()
+        shell: bash
+        run: |
+          echo ""
+          echo "=== FFI Cache Statistics ==="
+          echo "Platform: ${{ runner.os }}"
+          echo "Cache hit: ${{ steps.ffi.outputs.cache-hit }}"
+          echo "Cache key: ${{ steps.ffi.outputs.cache-key }}"
+          echo "Rust hash: ${{ steps.ffi.outputs.rust-hash }}"
+          echo ""
+          echo "FFI artifacts:"
+          echo "  target/release/:"
+          ls -lh target/release/libkreuzberg_ffi* 2>/dev/null || echo "    (none found)"
+
+      - name: Cleanup Rust cache
+        if: always()
+        uses: ./.github/actions/cleanup-rust-cache
+
+  lint:
+    name: Elixir Lint and Format Check
+    if: ${{ github.actor != 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-elixir@v1
+        with:
+          elixir-version: "1.16"
+          otp-version: "27.0"
+          version-type: strict
+
+      - name: Restore Elixir dependencies cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            packages/elixir/deps
+            packages/elixir/_build
+          key: elixir-lint-deps-${{ hashFiles('packages/elixir/mix.lock') }}
+          restore-keys: |
+            elixir-lint-deps-
+
+      - name: Install Elixir dependencies
+        shell: bash
+        working-directory: packages/elixir
+        run: mix deps.get
+
+      - name: Run Credo linter
+        shell: bash
+        working-directory: packages/elixir
+        run: mix credo --strict
+
+      - name: Check code formatting
+        shell: bash
+        working-directory: packages/elixir
+        run: mix format --check-formatted

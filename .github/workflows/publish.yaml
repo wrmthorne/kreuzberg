@@ -75,6 +75,7 @@ jobs:
       release_go: ${{ steps.meta.outputs.release_go }}
       release_wasm: ${{ steps.meta.outputs.release_wasm }}
       release_php: ${{ steps.meta.outputs.release_php }}
+      release_elixir: ${{ steps.meta.outputs.release_elixir }}
     steps:
       - name: Checkout code (default)
         uses: actions/checkout@v4
@@ -306,6 +307,35 @@ jobs:
       - name: Check crates.io for existing versions
         id: check
         run: scripts/publish/check_cratesio.sh "${{ needs.prepare.outputs.version }}" >> "$GITHUB_OUTPUT"
+
+  check-hex:
+    name: Check if Elixir package exists on Hex.pm
+    needs: prepare
+    if: ${{ needs.prepare.outputs.is_tag == 'true' && needs.prepare.outputs.release_elixir == 'true' && needs.prepare.outputs.force_republish != 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      exists: ${{ steps.check.outputs.exists }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-elixir@v1
+        with:
+          elixir-version: "1.14.0"
+          otp-version: "26"
+
+      - name: Check Hex.pm for existing version
+        id: check
+        working-directory: packages/elixir
+        run: |
+          if mix hex.info kreuzberg > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
 
   check-homebrew:
     name: Check if Homebrew formula already published
@@ -1975,6 +2005,48 @@ jobs:
         if: ${{ needs.prepare.outputs.dry_run == 'true' }}
         run: echo "Dry run requested; cargo publish skipped." >> "$GITHUB_STEP_SUMMARY"
 
+  publish-hex:
+    name: Publish Elixir package to Hex.pm
+    needs: [prepare, validate-versions, check-hex]
+    if: |
+      always() &&
+      needs.prepare.outputs.dry_run != 'true' &&
+      needs.prepare.outputs.is_tag == 'true' &&
+      needs.prepare.outputs.release_elixir == 'true' &&
+      (needs.prepare.outputs.force_republish == 'true' || needs.check-hex.outputs.exists != 'true')
+    runs-on: ubuntu-latest
+    environment: hex
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Setup Elixir
+        uses: erlef/setup-elixir@v1
+        with:
+          elixir-version: "1.14.0"
+          otp-version: "26"
+
+      - name: Build documentation
+        working-directory: packages/elixir
+        run: mix docs
+
+      - name: Publish to Hex.pm
+        if: ${{ needs.prepare.outputs.dry_run != 'true' }}
+        working-directory: packages/elixir
+        env:
+          HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
+        run: mix hex.publish --yes
+
+      - name: Hex.pm dry-run summary
+        if: ${{ needs.prepare.outputs.dry_run == 'true' }}
+        run: echo "Dry run requested; Hex.pm publish skipped." >> "$GITHUB_STEP_SUMMARY"
+
   publish-pypi:
     name: Publish Python packages to PyPI
     needs: [prepare, validate-versions, check-pypi, python-wheels, python-sdist]
@@ -2623,6 +2695,7 @@ jobs:
       - check-nuget
       - check-packagist
       - check-cratesio
+      - check-hex
       - check-homebrew
       - publish-pypi
       - publish-node
@@ -2631,6 +2704,7 @@ jobs:
       - publish-maven
       - publish-nuget
       - publish-php
+      - publish-hex
       - publish-homebrew
       - upload-cli-release
       - upload-csharp-release
@@ -2667,6 +2741,7 @@ jobs:
           CHECK_MAVEN_EXISTS: ${{ needs.check-maven.outputs.exists }}
           CHECK_NUGET_EXISTS: ${{ needs.check-nuget.outputs.exists }}
           CHECK_PACKAGIST_EXISTS: ${{ needs.check-packagist.outputs.exists }}
+          CHECK_HEX_EXISTS: ${{ needs.check-hex.outputs.exists }}
           RESULT_PUBLISH_PYPI: ${{ needs.publish-pypi.result }}
           RESULT_PUBLISH_NODE: ${{ needs.publish-node.result }}
           RESULT_PUBLISH_WASM: ${{ needs.publish-wasm.result }}
@@ -2674,6 +2749,7 @@ jobs:
           RESULT_PUBLISH_MAVEN: ${{ needs.publish-maven.result }}
           RESULT_PUBLISH_NUGET: ${{ needs.publish-nuget.result }}
           RESULT_PUBLISH_PHP: ${{ needs.publish-php.result }}
+          RESULT_PUBLISH_HEX: ${{ needs.publish-hex.result }}
           RESULT_PUBLISH_HOMEBREW: ${{ needs.publish-homebrew.result }}
           RESULT_UPLOAD_CLI_RELEASE: ${{ needs.upload-cli-release.result }}
           RESULT_UPLOAD_CSHARP_RELEASE: ${{ needs.upload-csharp-release.result }}

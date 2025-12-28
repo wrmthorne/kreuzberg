@@ -91,7 +91,7 @@ sections:
       **Architecture**:
       Elixir OTP application → Rustler NIF (kreuzberg_rustler.so) → Rust core (crates/kreuzberg)
 
-      Data flow: Elixir terms → NifMap encode → Rust types → Kreuzberg API → Rust types → NifMap decode → Elixir terms
+      Data flow: Elixir terms → term_to_json → serde_json::Value → Kreuzberg API → serde_json::Value → json_to_term → Elixir terms
 
       **Commands**:
       - mix deps.get (fetch dependencies)
@@ -114,13 +114,23 @@ sections:
       - Use dirty schedulers for CPU-intensive work to avoid blocking BEAM schedulers.
       - Resource cleanup: Use ResourceArc for Rust objects that need garbage collection.
 
-      **NIF Patterns**:
+      **NIF Patterns** (Phase 2 implementation follows html-to-markdown pattern):
       - rustler::init!() macro registers NIFs with BEAM VM
       - #[rustler::nif] attribute marks functions as NIFs
-      - #[rustler::nif(schedule = "DirtyCpu")] for CPU-intensive work
-      - NifMap derive for struct ↔ Elixir map conversion
-      - ResourceArc<T> for Rust objects with GC integration
-      - Binary/OwnedBinary for efficient binary data transfer
+      - #[rustler::nif(schedule = "DirtyCpu")] for CPU-intensive work on ALL extraction NIFs
+      - Field-by-field map construction: rustler::types::map::map_new() + incremental map_put() (NO NifMap derive)
+      - term_to_json helper: Elixir term → serde_json::Value (handles atoms, booleans, numbers, strings, lists, maps)
+      - json_to_term helper: serde_json::Value → Elixir term (recursive conversion for nested structures)
+      - OwnedBinary + Binary for efficient binary data (images): OwnedBinary::new() + Binary::from_owned()
+      - ResourceArc<T> for Rust objects with GC integration (reserved for future use)
+      - Dual-path config parsing: serde_json deserialization + explicit field handling for boolean fields
+
+      **Config Parsing Approach** (ExtractionConfig):
+      1. Accept Elixir map with atom/string keys via Term parameter
+      2. Convert term → serde_json::Value using term_to_json helper
+      3. Deserialize using serde_json::from_value() for nested structures (ocr, chunking, images, pages, etc.)
+      4. Explicitly handle top-level booleans (use_cache, enable_quality_processing, force_ocr) for compatibility
+      5. Return default ExtractionConfig if parsing fails at any step
 
       **Documentation**:
       - All public modules and functions documented with ExDoc (@moduledoc, @doc)
