@@ -17,7 +17,7 @@ dotnet add package Kreuzberg
 
 ### System Requirements
 
-- **.NET 6.0 or higher**
+- **.NET 10.0 or higher**
 - **Windows, macOS, or Linux**
 
 ### Optional System Dependencies

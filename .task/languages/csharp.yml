@@ -9,7 +9,7 @@ includes:
     internal: true
 
 vars:
-  DOTNET_VERSION: "8.0"
+  DOTNET_VERSION: "10.0"
 
 tasks:
   install:

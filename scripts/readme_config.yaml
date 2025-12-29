@@ -179,7 +179,7 @@ languages:
     badge_url: https://img.shields.io/nuget/v/Goldziher.Kreuzberg?label=C%23
     docs_url: https://kreuzberg.dev/
     description: |
-      Extract text, tables, images, and metadata from 56 file formats including PDF, Office documents, and images. .NET bindings with full type safety, async/await support, and .NET 6.0+ compatibility.
+      Extract text, tables, images, and metadata from 56 file formats including PDF, Office documents, and images. .NET bindings with full type safety, async/await support, and .NET 10.0+ compatibility.
     features:
       ocr: true
       async: true

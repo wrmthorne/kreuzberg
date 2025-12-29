@@ -1,4 +1,4 @@
-# C\#
+# C#
 
 <div align="center" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 20px 0;">
   <!-- Language Bindings -->
@@ -18,7 +18,7 @@
     <img src="https://img.shields.io/npm/v/@kreuzberg/wasm?label=WASM&color=007ec6" alt="WASM">
   </a>
 
-<a href="https://central.sonatype.com/artifact/dev.kreuzberg/kreuzberg">
+  <a href="https://central.sonatype.com/artifact/dev.kreuzberg/kreuzberg">
     <img src="https://img.shields.io/maven-central/v/dev.kreuzberg/kreuzberg?label=Java&color=007ec6" alt="Java">
   </a>
   <a href="https://github.com/kreuzberg-dev/kreuzberg/releases">
@@ -34,9 +34,8 @@
     <img src="https://img.shields.io/gem/v/kreuzberg?label=Ruby&color=007ec6" alt="Ruby">
   </a>
 
-<!-- Project Info -->
-
-<a href="https://github.com/kreuzberg-dev/kreuzberg/blob/main/LICENSE">
+  <!-- Project Info -->
+  <a href="https://github.com/kreuzberg-dev/kreuzberg/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">
   </a>
   <a href="https://docs.kreuzberg.dev">
@@ -52,7 +51,9 @@
   </a>
 </div>
 
-Extract text, tables, images, and metadata from 56 file formats including PDF, Office documents, and images. .NET bindings with full type safety, async/await support, and .NET 6.0+ compatibility.
+
+Extract text, tables, images, and metadata from 56 file formats including PDF, Office documents, and images. .NET bindings with full type safety, async/await support, and .NET 10.0+ compatibility.
+
 
 > **Version 4.0.0 Release Candidate**
 > Kreuzberg v4.0.0 is in **Release Candidate** stage. Bugs and breaking changes are expected.
@@ -61,6 +62,9 @@ Extract text, tables, images, and metadata from 56 file formats including PDF, O
 ## Installation
 
 ### Package Installation
+
+
+
 
 Install via NuGet:
 
@@ -74,11 +78,16 @@ Or via NuGet Package Manager:
 Install-Package Goldziher.Kreuzberg
 ```
 
+
+
+
 ### System Requirements
 
 - **.NET 6.0+** required
 - Optional: [ONNX Runtime](https://github.com/microsoft/onnxruntime/releases) version 1.21 or lower for embeddings support
 - Optional: [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) for OCR functionality
+
+
 
 ## Quick Start
 
@@ -101,40 +110,13 @@ Console.WriteLine(result.Content);
 Console.WriteLine($"MIME Type: {result.MimeType}");
 ```
 
-### Immutable Configuration Patterns
-
-All configuration classes use immutable patterns with init-only properties, ensuring thread-safe and predictable configurations:
-
-```cs
-using Kreuzberg;
-
-// Create immutable configurations using object initializer syntax
-var baseConfig = new ExtractionConfig
-{
-    UseCache = true,
-    EnableQualityProcessing = true
-};
-
-// All config properties are immutable after creation
-var ocrConfig = new ExtractionConfig
-{
-    Ocr = new OcrConfig
-    {
-        Backend = "tesseract",
-        Language = "eng"
-    }
-};
-
-// Properties cannot be modified after creation - they're read-only
-// This ensures thread-safety across batch operations
-var result = KreuzbergClient.ExtractFileSync("document.pdf", baseConfig);
-```
 
 ### Common Use Cases
 
 #### Extract with Custom Configuration
 
 Most use cases benefit from configuration to control extraction behavior:
+
 
 **With OCR (for scanned documents):**
 
@@ -158,11 +140,18 @@ var result = KreuzbergClient.ExtractFileSync("document.pdf", config);
 Console.WriteLine(result.Content);
 ```
 
+
+
+
 #### Table Extraction
+
 
 See [Table Extraction Guide](https://kreuzberg.dev/features/table-extraction/) for detailed examples.
 
+
+
 #### Processing Multiple Files
+
 
 ```cs
 using Kreuzberg;
@@ -213,6 +202,10 @@ class Program
 }
 ```
 
+
+
+
+
 #### Async Processing
 
 For non-blocking document processing:
@@ -253,6 +246,9 @@ class Program
 }
 ```
 
+
+
+
 ### Next Steps
 
 - **[Installation Guide](https://kreuzberg.dev/getting-started/installation/)** - Platform-specific setup
@@ -260,6 +256,7 @@ class Program
 - **[Examples & Guides](https://kreuzberg.dev/guides/)** - Full code examples and usage guides
 - **[Configuration Guide](https://kreuzberg.dev/configuration/)** - Advanced configuration options
 - **[Troubleshooting](https://kreuzberg.dev/troubleshooting/)** - Common issues and solutions
+
 
 ## Features
 
@@ -313,27 +310,22 @@ class Program
 ### Key Capabilities
 
 - **Text Extraction** - Extract all text content with position and formatting information
-
 - **Metadata Extraction** - Retrieve document properties, creation date, author, etc.
-
 - **Table Extraction** - Parse tables with structure and cell content preservation
-
 - **Image Extraction** - Extract embedded images and render page previews
-
 - **OCR Support** - Integrate multiple OCR backends for scanned documents
 
 - **Async/Await** - Non-blocking document processing with concurrent operations
 
+
 - **Plugin System** - Extensible post-processing for custom text transformation
+
 
 - **Embeddings** - Generate vector embeddings using ONNX Runtime models
 
 - **Batch Processing** - Efficiently process multiple documents in parallel
-
 - **Memory Efficient** - Stream large files without loading entirely into memory
-
 - **Language Detection** - Detect and support multiple languages in documents
-
 - **Configuration** - Fine-grained control over extraction behavior
 
 ### Performance Characteristics
@@ -346,11 +338,15 @@ class Program
 | **Archives** | 5-50 MB/s | ~200MB per doc | ZIP, TAR, etc. |
 | **Web formats** | 50-200 MB/s | Streaming | HTML, XML, JSON |
 
+
+
 ## OCR Support
 
 Kreuzberg supports multiple OCR backends for extracting text from scanned documents and images:
 
+
 - **Tesseract**
+
 
 ### OCR Configuration Example
 
@@ -373,6 +369,9 @@ var config = new ExtractionConfig
 var result = KreuzbergClient.ExtractFileSync("document.pdf", config);
 Console.WriteLine(result.Content);
 ```
+
+
+
 
 ## Async Support
 
@@ -414,17 +413,25 @@ class Program
 }
 ```
 
+
+
+
 ## Plugin System
 
 Kreuzberg supports extensible post-processing plugins for custom text transformation and filtering.
 
 For detailed plugin documentation, visit [Plugin System Guide](https://kreuzberg.dev/plugins/).
 
+
+
+
 ## Embeddings Support
 
 Generate vector embeddings for extracted text using the built-in ONNX Runtime support. Requires ONNX Runtime installation.
 
 **[Embeddings Guide](https://kreuzberg.dev/features/#embeddings)**
+
+
 
 ## Batch Processing
 
@@ -479,187 +486,8 @@ class Program
 }
 ```
 
-## Immutable Configuration Design
 
-Kreuzberg's C# binding uses immutable configuration objects throughout. All configuration classes employ the `init` accessor, making properties settable only during object initialization and read-only afterward.
 
-### Benefits of Immutability
-
-- **Thread Safety**: Configurations can be safely shared across threads without locks
-- **Predictability**: Configuration state cannot change unexpectedly during extraction
-- **Concurrency**: Ideal for batch operations and parallel processing
-- **Caching**: Enables efficient configuration caching without invalidation concerns
-
-### Configuration Examples
-
-#### Basic Immutable Configuration
-
-```cs
-// Create configuration with init-only properties
-var config = new ExtractionConfig
-{
-    UseCache = true,
-    EnableQualityProcessing = true
-};
-
-// This works - creates a new object with modified values
-var enhancedConfig = new ExtractionConfig
-{
-    UseCache = config.UseCache ?? false,
-    EnableQualityProcessing = true,
-    MaxConcurrentExtractions = 4
-};
-
-// This will NOT compile - properties are read-only after init
-// config.UseCache = false;  // Error: cannot assign to init-only property
-```
-
-#### Nested Immutable Configs
-
-```cs
-// Complex nested configurations remain immutable
-var advancedConfig = new ExtractionConfig
-{
-    UseCache = true,
-    Ocr = new OcrConfig
-    {
-        Backend = "tesseract",
-        Language = "eng+fra+deu",
-        TesseractConfig = new TesseractConfig
-        {
-            Psm = 3,
-            Oem = 1,
-            MinConfidence = 0.5,
-            EnableTableDetection = true
-        }
-    },
-    Chunking = new ChunkingConfig
-    {
-        MaxChars = 1000,
-        MaxOverlap = 100,
-        Preset = "semantic"
-    },
-    LanguageDetection = new LanguageDetectionConfig
-    {
-        Enabled = true,
-        MinConfidence = 0.7,
-        DetectMultiple = true
-    }
-};
-
-// Use the immutable config across multiple operations
-var result1 = KreuzbergClient.ExtractFileSync("doc1.pdf", advancedConfig);
-var result2 = KreuzbergClient.ExtractFileSync("doc2.pdf", advancedConfig);
-// Both operations safely share the same immutable configuration
-```
-
-#### Configuration with Optional Features
-
-```cs
-// Selectively enable features through immutable initialization
-var configWithImages = new ExtractionConfig
-{
-    UseCache = true,
-    EnableQualityProcessing = true,
-    Images = new ImageExtractionConfig
-    {
-        ExtractImages = true,
-        TargetDpi = 150,
-        AutoAdjustDpi = true,
-        MinDpi = 72,
-        MaxDpi = 300
-    }
-};
-
-var configWithKeywords = new ExtractionConfig
-{
-    Keywords = new KeywordConfig
-    {
-        Algorithm = KeywordAlgorithm.Yake,
-        MaxKeywords = 20,
-        MinScore = 0.5,
-        Language = "en"
-    }
-};
-
-// PDF-specific immutable configuration
-var pdfConfig = new ExtractionConfig
-{
-    UseCache = true,
-    PdfOptions = new PdfConfig
-    {
-        ExtractImages = true,
-        ExtractMetadata = true,
-        Passwords = new List<string> { "password1", "password2" },
-        FontConfig = new FontConfig
-        {
-            FontFallbackEnabled = true,
-            FontDir = "/usr/share/fonts"
-        }
-    }
-};
-```
-
-#### HTML Processing with Immutable Options
-
-```cs
-// Rich HTML conversion options, all immutable
-var htmlConfig = new ExtractionConfig
-{
-    HtmlOptions = new HtmlConversionOptions
-    {
-        HeadingStyle = "atx",
-        ListIndentType = "space",
-        ListIndentWidth = 2,
-        Bullets = "-",
-        Autolinks = true,
-        ExtractMetadata = true,
-        WhitespaceMode = "collapse",
-        Wrap = true,
-        WrapWidth = 80,
-        CodeBlockStyle = "fenced",
-        HighlightStyle = "github-dark",
-        Preprocessing = new HtmlPreprocessingOptions
-        {
-            Enabled = true,
-            Preset = "readability",
-            RemoveNavigation = true,
-            RemoveForms = true
-        }
-    }
-};
-```
-
-#### Thread-Safe Batch Operations
-
-```cs
-// Immutable configs are perfect for batch processing
-var batchConfig = new ExtractionConfig
-{
-    UseCache = true,
-    EnableQualityProcessing = true,
-    MaxConcurrentExtractions = 4
-};
-
-var filePaths = new[]
-{
-    "document1.pdf",
-    "document2.pdf",
-    "document3.pdf",
-    "document4.docx"
-};
-
-// Safe to use same immutable config across all batch items
-var results = KreuzbergClient.BatchExtractFilesSync(filePaths, batchConfig);
-
-// Or async with cancellation token
-using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-var asyncResults = await KreuzbergClient.BatchExtractFilesAsync(
-    filePaths,
-    batchConfig,
-    cts.Token
-);
-```
 
 ## Configuration
 

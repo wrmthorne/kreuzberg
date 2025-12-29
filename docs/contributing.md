@@ -10,7 +10,7 @@ Thanks for helping improve Kreuzberg! This guide summarizes the workflow, toolin
 - Ruby 3.3+ via `rbenv` (preferred) or `rvm`.
 - Go 1.25+ (install via `brew install go`, `asdf install golang`, or the official installer).
 - Java 25+ (required for FFM API bindings).
-- .NET 9+ (required for C# bindings).
+- .NET 10+ (required for C# bindings).
 - Homebrew (macOS) or system equivalents for Tesseract/Pdfium dependencies.
 
 Install all project dependencies in one shot:
@@ -186,7 +186,7 @@ sudo apt-get install build-essential
 - **TypeScript**: maintain strict types, avoid `any`, keep bindings in `packages/typescript/src` and tests under `tests/binding|smoke|cli`.
 - **Ruby**: no global state outside `Kreuzberg` module, keep native bridge panic-free, follow Rubocop defaults.
 - **Java**: FFM API (Foreign Function & Memory), sealed classes, records, pattern matching; JUnit 5; follow Checkstyle rules.
-- **C#**: .NET 9+; follow Microsoft C# coding conventions; use records for data types, nullable reference types enabled.
+- **C#**: .NET 10+; follow Microsoft C# coding conventions; use records for data types, nullable reference types enabled.
 - **Testing strategy**: Only language-specific smoke/binding tests live in each package; shared behavior belongs to the `e2e/` fixtures (Python, Ruby, TypeScript, Rust, Go, Java, C# runners). When adding a new feature, update the relevant fixture and regenerate via `task e2e:<lang>:generate`.
 
 ## Documentation
