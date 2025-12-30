@@ -71,6 +71,8 @@ import type {
 	TesseractConfig,
 	TokenReductionConfig,
 	ValidatorProtocol,
+	WorkerPool,
+	WorkerPoolStats,
 } from "./types.js";
 
 /**
