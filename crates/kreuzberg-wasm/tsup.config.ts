@@ -33,6 +33,7 @@ export default defineConfig({
 	external: [
 		"@kreuzberg/core",
 		"tesseract-wasm",
+		"fs",
 		"node:fs/promises",
 		/\.wasm$/,
 		/@kreuzberg\/wasm-.*/,

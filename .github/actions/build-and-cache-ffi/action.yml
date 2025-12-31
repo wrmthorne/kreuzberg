@@ -226,8 +226,24 @@ runs:
           RELEASE_DIR="$TARGET_DIR/release"
         fi
 
-        # Convert crate name to library name (replace hyphens with underscores)
-        LIB_NAME="${FFI_CRATE//-/_}"
+        # Determine library name - check Cargo.toml for custom lib name
+        CARGO_TOML="crates/${FFI_CRATE}/Cargo.toml"
+
+        if [[ -f "$CARGO_TOML" ]] && grep -q '^\[lib\]' "$CARGO_TOML"; then
+          # Extract custom library name from Cargo.toml if it exists
+          CUSTOM_LIB_NAME=$(awk '/^\[lib\]/,/^\[/ {if ($1 == "name") {gsub(/"/, "", $3); print $3}}' "$CARGO_TOML")
+          if [[ -n "$CUSTOM_LIB_NAME" ]]; then
+            LIB_NAME="$CUSTOM_LIB_NAME"
+          else
+            # Convert crate name to library name (replace hyphens with underscores)
+            LIB_NAME="${FFI_CRATE//-/_}"
+          fi
+        else
+          # Convert crate name to library name (replace hyphens with underscores)
+          LIB_NAME="${FFI_CRATE//-/_}"
+        fi
+
+        echo "Library name: $LIB_NAME"
 
         LIBRARY_PATH=""
         for candidate in "$RELEASE_DIR/lib${LIB_NAME}.so" \

@@ -201,106 +201,111 @@ mod build_tesseract {
         let leptonica_install_dir = out_dir.join("leptonica");
         let leptonica_cache_dir = cache_dir.join("leptonica");
 
-        build_or_use_cached("leptonica", &leptonica_cache_dir, &leptonica_install_dir, || {
-            let mut leptonica_config = Config::new(&leptonica_dir);
+        let leptonica_link_name = build_or_use_cached(
+            "leptonica",
+            &leptonica_cache_dir,
+            &leptonica_install_dir,
+            || {
+                let mut leptonica_config = Config::new(&leptonica_dir);
 
-            let leptonica_src_dir = leptonica_dir.join("src");
-            let environ_h_path = leptonica_src_dir.join("environ.h");
+                let leptonica_src_dir = leptonica_dir.join("src");
+                let environ_h_path = leptonica_src_dir.join("environ.h");
 
-            if environ_h_path.exists() {
-                let environ_h = std::fs::read_to_string(&environ_h_path)
-                    .expect("Failed to read environ.h")
-                    .replace("#define  HAVE_LIBZ          1", "#define  HAVE_LIBZ          0")
-                    .replace("#ifdef  NO_CONSOLE_IO", "#define NO_CONSOLE_IO\n#ifdef  NO_CONSOLE_IO");
-                std::fs::write(environ_h_path, environ_h).expect("Failed to write environ.h");
-            }
+                if environ_h_path.exists() {
+                    let environ_h = std::fs::read_to_string(&environ_h_path)
+                        .expect("Failed to read environ.h")
+                        .replace("#define  HAVE_LIBZ          1", "#define  HAVE_LIBZ          0")
+                        .replace("#ifdef  NO_CONSOLE_IO", "#define NO_CONSOLE_IO\n#ifdef  NO_CONSOLE_IO");
+                    std::fs::write(environ_h_path, environ_h).expect("Failed to write environ.h");
+                }
 
-            let makefile_static_path = leptonica_dir.join("prog").join("makefile.static");
+                let makefile_static_path = leptonica_dir.join("prog").join("makefile.static");
 
-            let leptonica_src_cmakelists = leptonica_dir.join("src").join("CMakeLists.txt");
+                let leptonica_src_cmakelists = leptonica_dir.join("src").join("CMakeLists.txt");
 
-            if leptonica_src_cmakelists.exists() {
-                let cmakelists = std::fs::read_to_string(&leptonica_src_cmakelists)
-                    .expect("Failed to read leptonica src CMakeLists.txt");
-                let patched = cmakelists.replace(
+                if leptonica_src_cmakelists.exists() {
+                    let cmakelists = std::fs::read_to_string(&leptonica_src_cmakelists)
+                        .expect("Failed to read leptonica src CMakeLists.txt");
+                    let patched = cmakelists.replace(
                         "if(MINGW)\n  set_target_properties(\n    leptonica PROPERTIES SUFFIX\n                         \"-${PROJECT_VERSION}${CMAKE_SHARED_LIBRARY_SUFFIX}\")\nendif(MINGW)\n",
                         "if(MINGW AND BUILD_SHARED_LIBS)\n  set_target_properties(\n    leptonica PROPERTIES SUFFIX\n                         \"-${PROJECT_VERSION}${CMAKE_SHARED_LIBRARY_SUFFIX}\")\nendif()\n",
                     );
-                if patched != cmakelists {
-                    std::fs::write(&leptonica_src_cmakelists, patched)
-                        .expect("Failed to patch leptonica src CMakeLists.txt");
+                    if patched != cmakelists {
+                        std::fs::write(&leptonica_src_cmakelists, patched)
+                            .expect("Failed to patch leptonica src CMakeLists.txt");
+                    }
                 }
-            }
 
-            if makefile_static_path.exists() {
-                let makefile_static = std::fs::read_to_string(&makefile_static_path)
-                    .expect("Failed to read makefile.static")
-                    .replace(
-                        "ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm",
-                        "ALL_LIBS =	$(LEPTLIB) -lm",
-                    );
-                std::fs::write(makefile_static_path, makefile_static).expect("Failed to write makefile.static");
-            }
-
-            if windows_target {
-                if mingw_target {
-                    leptonica_config.generator("Unix Makefiles");
-                    leptonica_config.define("CMAKE_MAKE_PROGRAM", "mingw32-make");
-                    leptonica_config.define("MSYS2_ARG_CONV_EXCL", "/MD;/MDd;/D;-D;-I;-L");
-                } else if msvc_target && env::var("VSINSTALLDIR").is_ok() {
-                    leptonica_config.generator("NMake Makefiles");
+                if makefile_static_path.exists() {
+                    let makefile_static = std::fs::read_to_string(&makefile_static_path)
+                        .expect("Failed to read makefile.static")
+                        .replace(
+                            "ALL_LIBS =	$(LEPTLIB) -ltiff -ljpeg -lpng -lz -lm",
+                            "ALL_LIBS =	$(LEPTLIB) -lm",
+                        );
+                    std::fs::write(makefile_static_path, makefile_static).expect("Failed to write makefile.static");
                 }
-                leptonica_config.define("CMAKE_CL_SHOWINCLUDES_PREFIX", "");
-            }
 
-            if env::var("CI").is_err() && env::var("RUSTC_WRAPPER").unwrap_or_default() == "sccache" {
-                leptonica_config.env("CC", "sccache cc").env("CXX", "sccache c++");
-            }
-
-            let leptonica_install_dir_cmake = normalize_cmake_path(&leptonica_install_dir);
-
-            leptonica_config
-                .define("CMAKE_POLICY_VERSION_MINIMUM", "3.5")
-                .define("CMAKE_BUILD_TYPE", "Release")
-                .define("BUILD_PROG", "OFF")
-                .define("BUILD_SHARED_LIBS", "OFF")
-                .define("ENABLE_ZLIB", "OFF")
-                .define("ENABLE_PNG", "OFF")
-                .define("ENABLE_JPEG", "OFF")
-                .define("ENABLE_TIFF", "OFF")
-                .define("ENABLE_WEBP", "OFF")
-                .define("ENABLE_OPENJPEG", "OFF")
-                .define("ENABLE_GIF", "OFF")
-                .define("NO_CONSOLE_IO", "ON")
-                .define("CMAKE_CXX_FLAGS", &cmake_cxx_flags)
-                .define("MINIMUM_SEVERITY", "L_SEVERITY_NONE")
-                .define("SW_BUILD", "OFF")
-                .define("HAVE_LIBZ", "0")
-                .define("ENABLE_LTO", "OFF")
-                .define("CMAKE_INSTALL_PREFIX", &leptonica_install_dir_cmake);
-
-            if windows_target {
-                if msvc_target {
-                    leptonica_config
-                        .define("CMAKE_C_FLAGS_RELEASE", "/MD /O2")
-                        .define("CMAKE_C_FLAGS_DEBUG", "/MDd /Od");
-                } else if mingw_target {
-                    leptonica_config
-                        .define("CMAKE_C_FLAGS_RELEASE", "-O2 -DNDEBUG")
-                        .define("CMAKE_C_FLAGS_DEBUG", "-O0 -g");
-                } else {
-                    leptonica_config
-                        .define("CMAKE_C_FLAGS_RELEASE", "-O2")
-                        .define("CMAKE_C_FLAGS_DEBUG", "-O0 -g");
+                if windows_target {
+                    if mingw_target {
+                        leptonica_config.generator("Unix Makefiles");
+                        leptonica_config.define("CMAKE_MAKE_PROGRAM", "mingw32-make");
+                        leptonica_config.define("MSYS2_ARG_CONV_EXCL", "/MD;/MDd;/D;-D;-I;-L");
+                    } else if msvc_target && env::var("VSINSTALLDIR").is_ok() {
+                        leptonica_config.generator("NMake Makefiles");
+                    }
+                    leptonica_config.define("CMAKE_CL_SHOWINCLUDES_PREFIX", "");
                 }
-            }
 
-            for (key, value) in &additional_defines {
-                leptonica_config.define(key, value);
-            }
+                if env::var("CI").is_err() && env::var("RUSTC_WRAPPER").unwrap_or_default() == "sccache" {
+                    leptonica_config.env("CC", "sccache cc").env("CXX", "sccache c++");
+                }
 
-            leptonica_config.build();
-        });
+                let leptonica_install_dir_cmake = normalize_cmake_path(&leptonica_install_dir);
+
+                leptonica_config
+                    .define("CMAKE_POLICY_VERSION_MINIMUM", "3.5")
+                    .define("CMAKE_BUILD_TYPE", "Release")
+                    .define("BUILD_PROG", "OFF")
+                    .define("BUILD_SHARED_LIBS", "OFF")
+                    .define("ENABLE_ZLIB", "OFF")
+                    .define("ENABLE_PNG", "OFF")
+                    .define("ENABLE_JPEG", "OFF")
+                    .define("ENABLE_TIFF", "OFF")
+                    .define("ENABLE_WEBP", "OFF")
+                    .define("ENABLE_OPENJPEG", "OFF")
+                    .define("ENABLE_GIF", "OFF")
+                    .define("NO_CONSOLE_IO", "ON")
+                    .define("CMAKE_CXX_FLAGS", &cmake_cxx_flags)
+                    .define("MINIMUM_SEVERITY", "L_SEVERITY_NONE")
+                    .define("SW_BUILD", "OFF")
+                    .define("HAVE_LIBZ", "0")
+                    .define("ENABLE_LTO", "OFF")
+                    .define("CMAKE_INSTALL_PREFIX", &leptonica_install_dir_cmake);
+
+                if windows_target {
+                    if msvc_target {
+                        leptonica_config
+                            .define("CMAKE_C_FLAGS_RELEASE", "/MD /O2")
+                            .define("CMAKE_C_FLAGS_DEBUG", "/MDd /Od");
+                    } else if mingw_target {
+                        leptonica_config
+                            .define("CMAKE_C_FLAGS_RELEASE", "-O2 -DNDEBUG")
+                            .define("CMAKE_C_FLAGS_DEBUG", "-O0 -g");
+                    } else {
+                        leptonica_config
+                            .define("CMAKE_C_FLAGS_RELEASE", "-O2")
+                            .define("CMAKE_C_FLAGS_DEBUG", "-O0 -g");
+                    }
+                }
+
+                for (key, value) in &additional_defines {
+                    leptonica_config.define(key, value);
+                }
+
+                leptonica_config.build();
+            },
+        );
 
         let leptonica_include_dir = leptonica_install_dir.join("include");
         let leptonica_lib_dir = leptonica_install_dir.join("lib");
@@ -314,76 +319,77 @@ mod build_tesseract {
         let tesseract_install_dir_cmake = normalize_cmake_path(&tesseract_install_dir);
         let tessdata_prefix_cmake = normalize_cmake_path(&tessdata_prefix);
 
-        build_or_use_cached("tesseract", &tesseract_cache_dir, &tesseract_install_dir, || {
-            let cmakelists_path = tesseract_dir.join("CMakeLists.txt");
-            let cmakelists = std::fs::read_to_string(&cmakelists_path)
-                .expect("Failed to read CMakeLists.txt")
-                .replace("set(HAVE_TIFFIO_H ON)", "");
-            std::fs::write(&cmakelists_path, cmakelists).expect("Failed to write CMakeLists.txt");
+        let tesseract_link_name =
+            build_or_use_cached("tesseract", &tesseract_cache_dir, &tesseract_install_dir, || {
+                let cmakelists_path = tesseract_dir.join("CMakeLists.txt");
+                let cmakelists = std::fs::read_to_string(&cmakelists_path)
+                    .expect("Failed to read CMakeLists.txt")
+                    .replace("set(HAVE_TIFFIO_H ON)", "");
+                std::fs::write(&cmakelists_path, cmakelists).expect("Failed to write CMakeLists.txt");
 
-            let mut tesseract_config = Config::new(&tesseract_dir);
-            if windows_target {
-                if mingw_target {
-                    tesseract_config.generator("Unix Makefiles");
-                    tesseract_config.define("CMAKE_MAKE_PROGRAM", "mingw32-make");
-                    tesseract_config.define("MSYS2_ARG_CONV_EXCL", "/MD;/MDd;/D;-D;-I;-L");
-                } else if msvc_target && env::var("VSINSTALLDIR").is_ok() {
-                    tesseract_config.generator("NMake Makefiles");
+                let mut tesseract_config = Config::new(&tesseract_dir);
+                if windows_target {
+                    if mingw_target {
+                        tesseract_config.generator("Unix Makefiles");
+                        tesseract_config.define("CMAKE_MAKE_PROGRAM", "mingw32-make");
+                        tesseract_config.define("MSYS2_ARG_CONV_EXCL", "/MD;/MDd;/D;-D;-I;-L");
+                    } else if msvc_target && env::var("VSINSTALLDIR").is_ok() {
+                        tesseract_config.generator("NMake Makefiles");
+                    }
+                    tesseract_config.define("CMAKE_CL_SHOWINCLUDES_PREFIX", "");
                 }
-                tesseract_config.define("CMAKE_CL_SHOWINCLUDES_PREFIX", "");
-            }
 
-            if env::var("CI").is_err() && env::var("RUSTC_WRAPPER").unwrap_or_default() == "sccache" {
-                tesseract_config.env("CC", "sccache cc").env("CXX", "sccache c++");
-            }
-            tesseract_config
-                .define("CMAKE_POLICY_VERSION_MINIMUM", "3.5")
-                .define("CMAKE_BUILD_TYPE", "Release")
-                .define("BUILD_TRAINING_TOOLS", "OFF")
-                .define("BUILD_SHARED_LIBS", "OFF")
-                .define("DISABLE_ARCHIVE", "ON")
-                .define("DISABLE_CURL", "ON")
-                .define("DISABLE_OPENCL", "ON")
-                .define("Leptonica_DIR", &leptonica_install_dir_cmake)
-                .define("LEPTONICA_INCLUDE_DIR", &leptonica_include_dir_cmake)
-                .define("LEPTONICA_LIBRARY", &leptonica_lib_dir_cmake)
-                .define("CMAKE_PREFIX_PATH", &leptonica_install_dir_cmake)
-                .define("CMAKE_INSTALL_PREFIX", &tesseract_install_dir_cmake)
-                .define("TESSDATA_PREFIX", &tessdata_prefix_cmake)
-                .define("DISABLE_TIFF", "ON")
-                .define("DISABLE_PNG", "ON")
-                .define("DISABLE_JPEG", "ON")
-                .define("DISABLE_WEBP", "ON")
-                .define("DISABLE_OPENJPEG", "ON")
-                .define("DISABLE_ZLIB", "ON")
-                .define("DISABLE_LIBXML2", "ON")
-                .define("DISABLE_LIBICU", "ON")
-                .define("DISABLE_LZMA", "ON")
-                .define("DISABLE_GIF", "ON")
-                .define("DISABLE_DEBUG_MESSAGES", "ON")
-                .define("debug_file", "/dev/null")
-                .define("HAVE_LIBARCHIVE", "OFF")
-                .define("HAVE_LIBCURL", "OFF")
-                .define("HAVE_TIFFIO_H", "OFF")
-                .define("GRAPHICS_DISABLED", "ON")
-                .define("DISABLED_LEGACY_ENGINE", "OFF")
-                .define("USE_OPENCL", "OFF")
-                .define("OPENMP_BUILD", "OFF")
-                .define("BUILD_TESTS", "OFF")
-                .define("ENABLE_LTO", "OFF")
-                .define("BUILD_PROG", "OFF")
-                .define("SW_BUILD", "OFF")
-                .define("LEPT_TIFF_RESULT", "FALSE")
-                .define("INSTALL_CONFIGS", "ON")
-                .define("USE_SYSTEM_ICU", "ON")
-                .define("CMAKE_CXX_FLAGS", &cmake_cxx_flags);
+                if env::var("CI").is_err() && env::var("RUSTC_WRAPPER").unwrap_or_default() == "sccache" {
+                    tesseract_config.env("CC", "sccache cc").env("CXX", "sccache c++");
+                }
+                tesseract_config
+                    .define("CMAKE_POLICY_VERSION_MINIMUM", "3.5")
+                    .define("CMAKE_BUILD_TYPE", "Release")
+                    .define("BUILD_TRAINING_TOOLS", "OFF")
+                    .define("BUILD_SHARED_LIBS", "OFF")
+                    .define("DISABLE_ARCHIVE", "ON")
+                    .define("DISABLE_CURL", "ON")
+                    .define("DISABLE_OPENCL", "ON")
+                    .define("Leptonica_DIR", &leptonica_install_dir_cmake)
+                    .define("LEPTONICA_INCLUDE_DIR", &leptonica_include_dir_cmake)
+                    .define("LEPTONICA_LIBRARY", &leptonica_lib_dir_cmake)
+                    .define("CMAKE_PREFIX_PATH", &leptonica_install_dir_cmake)
+                    .define("CMAKE_INSTALL_PREFIX", &tesseract_install_dir_cmake)
+                    .define("TESSDATA_PREFIX", &tessdata_prefix_cmake)
+                    .define("DISABLE_TIFF", "ON")
+                    .define("DISABLE_PNG", "ON")
+                    .define("DISABLE_JPEG", "ON")
+                    .define("DISABLE_WEBP", "ON")
+                    .define("DISABLE_OPENJPEG", "ON")
+                    .define("DISABLE_ZLIB", "ON")
+                    .define("DISABLE_LIBXML2", "ON")
+                    .define("DISABLE_LIBICU", "ON")
+                    .define("DISABLE_LZMA", "ON")
+                    .define("DISABLE_GIF", "ON")
+                    .define("DISABLE_DEBUG_MESSAGES", "ON")
+                    .define("debug_file", "/dev/null")
+                    .define("HAVE_LIBARCHIVE", "OFF")
+                    .define("HAVE_LIBCURL", "OFF")
+                    .define("HAVE_TIFFIO_H", "OFF")
+                    .define("GRAPHICS_DISABLED", "ON")
+                    .define("DISABLED_LEGACY_ENGINE", "OFF")
+                    .define("USE_OPENCL", "OFF")
+                    .define("OPENMP_BUILD", "OFF")
+                    .define("BUILD_TESTS", "OFF")
+                    .define("ENABLE_LTO", "OFF")
+                    .define("BUILD_PROG", "OFF")
+                    .define("SW_BUILD", "OFF")
+                    .define("LEPT_TIFF_RESULT", "FALSE")
+                    .define("INSTALL_CONFIGS", "ON")
+                    .define("USE_SYSTEM_ICU", "ON")
+                    .define("CMAKE_CXX_FLAGS", &cmake_cxx_flags);
 
-            for (key, value) in &additional_defines {
-                tesseract_config.define(key, value);
-            }
+                for (key, value) in &additional_defines {
+                    tesseract_config.define(key, value);
+                }
 
-            tesseract_config.build();
-        });
+                tesseract_config.build();
+            });
 
         println!("cargo:rerun-if-changed=build.rs");
         println!("cargo:rerun-if-changed={}", third_party_dir.display());
@@ -397,6 +403,24 @@ mod build_tesseract {
         );
 
         set_os_specific_link_flags();
+
+        // Link libraries in the correct order for static linking:
+        // tesseract first (depends on leptonica), then leptonica
+        #[cfg(feature = "dynamic-linking")]
+        let link_type = "dylib";
+        #[cfg(not(feature = "dynamic-linking"))]
+        let link_type = "static";
+
+        println!("cargo:rustc-link-lib={}={}", link_type, tesseract_link_name);
+        println!(
+            "cargo:warning=Linking with tesseract ({} linking): {}",
+            link_type, tesseract_link_name
+        );
+        println!("cargo:rustc-link-lib={}={}", link_type, leptonica_link_name);
+        println!(
+            "cargo:warning=Linking with leptonica ({} linking): {}",
+            link_type, leptonica_link_name
+        );
 
         println!("cargo:warning=Leptonica include dir: {:?}", leptonica_include_dir);
         println!("cargo:warning=Leptonica lib dir: {:?}", leptonica_lib_dir);
@@ -784,24 +808,26 @@ After installation, set EMSDK environment variable or ensure it's in a standard 
         let leptonica_install_dir = custom_out_dir.join("leptonica");
         let leptonica_cache_dir = cache_dir.join("leptonica");
 
-        build_or_use_cached("leptonica", &leptonica_cache_dir, &leptonica_install_dir, || {
-            println!("cargo:warning=Building Leptonica for WASM...");
-            build_leptonica_wasm(&leptonica_dir, &leptonica_install_dir, &emsdk_dir);
-        });
+        let _leptonica_link_name =
+            build_or_use_cached("leptonica", &leptonica_cache_dir, &leptonica_install_dir, || {
+                println!("cargo:warning=Building Leptonica for WASM...");
+                build_leptonica_wasm(&leptonica_dir, &leptonica_install_dir, &emsdk_dir);
+            });
 
         let tesseract_install_dir = custom_out_dir.join("tesseract");
         let tesseract_cache_dir = cache_dir.join("tesseract");
 
-        build_or_use_cached("tesseract", &tesseract_cache_dir, &tesseract_install_dir, || {
-            println!("cargo:warning=Building Tesseract for WASM (SIMD enabled)...");
-            build_tesseract_wasm(
-                &tesseract_dir,
-                &tesseract_install_dir,
-                &leptonica_install_dir,
-                &emsdk_dir,
-                true,
-            );
-        });
+        let _tesseract_link_name =
+            build_or_use_cached("tesseract", &tesseract_cache_dir, &tesseract_install_dir, || {
+                println!("cargo:warning=Building Tesseract for WASM (SIMD enabled)...");
+                build_tesseract_wasm(
+                    &tesseract_dir,
+                    &tesseract_install_dir,
+                    &leptonica_install_dir,
+                    &emsdk_dir,
+                    true,
+                );
+            });
 
         let leptonica_lib_dir = leptonica_install_dir.join("lib");
         let tesseract_lib_dir = tesseract_install_dir.join("lib");
@@ -882,7 +908,7 @@ After installation, set EMSDK environment variable or ensure it's in a standard 
         config.build();
     }
 
-    fn build_or_use_cached<F>(name: &str, cache_dir: &Path, install_dir: &Path, build_fn: F)
+    fn build_or_use_cached<F>(name: &str, cache_dir: &Path, install_dir: &Path, build_fn: F) -> String
     where
         F: FnOnce(),
     {
@@ -1065,16 +1091,9 @@ After installation, set EMSDK environment variable or ensure it's in a standard 
             println!("cargo:rustc-link-search=native={}", dir.display());
         }
 
-        #[cfg(feature = "dynamic-linking")]
-        let link_type = "dylib";
-        #[cfg(not(feature = "dynamic-linking"))]
-        let link_type = "static";
-
-        println!("cargo:rustc-link-lib={}={}", link_type, link_name_to_use);
-        println!(
-            "cargo:warning=Linking with library ({} linking): {}",
-            link_type, link_name_to_use
-        );
+        // Return the link name instead of outputting the link directive here
+        // This allows the caller to control the linking order
+        link_name_to_use
     }
 }
 

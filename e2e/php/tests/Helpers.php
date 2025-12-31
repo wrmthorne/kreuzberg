@@ -13,7 +13,7 @@ use Kreuzberg\Config\LanguageDetectionConfig;
 use Kreuzberg\Config\PdfConfig;
 use Kreuzberg\Config\PostProcessorConfig;
 use Kreuzberg\Config\TokenReductionConfig;
-use Kreuzberg\ExtractionResult;
+use Kreuzberg\Types\ExtractionResult;
 use PHPUnit\Framework\Assert;
 
 class Helpers
@@ -24,7 +24,7 @@ class Helpers
     public static function getWorkspaceRoot(): string
     {
         if (self::$workspaceRoot === null) {
-            self::$workspaceRoot = realpath(__DIR__ . '/../../../..');
+            self::$workspaceRoot = realpath(__DIR__ . '/../../..');
         }
         return self::$workspaceRoot;
     }

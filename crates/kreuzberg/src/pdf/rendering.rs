@@ -1,4 +1,4 @@
-use super::bindings::{bind_pdfium, PdfiumHandle};
+use super::bindings::{PdfiumHandle, bind_pdfium};
 use super::error::{PdfError, Result};
 use image::DynamicImage;
 use pdfium_render::prelude::*;

@@ -34,14 +34,25 @@ if (!$autoloaded) {
     exit(1);
 }
 
+// Register autoloader for E2EPhp namespace tests
+spl_autoload_register(function ($class): bool {
+    if (strpos($class, 'E2EPhp\\') === 0) {
+        $classPath = str_replace('\\', '/', substr($class, 8)); // Remove 'E2EPhp\' prefix
+        $file = __DIR__ . '/tests/' . $classPath . '.php';
+        if (file_exists($file)) {
+            require_once $file;
+            return true;
+        }
+    }
+    return false;
+}, true, true); // Append to autoload stack, convert to lowercase classname
+
+// Load the Helpers class manually to ensure it's available
+require_once __DIR__ . '/tests/Helpers.php';
+
+// Load the mock extension if the real extension is not available
 if (!extension_loaded('kreuzberg')) {
-    fwrite(
-        STDERR,
-        "Error: Kreuzberg PHP extension is not loaded.\n" .
-        "Please build and install the extension first, then run with:\n" .
-        "  php -dextension=packages/php/ext/libkreuzberg.dylib vendor/bin/phpunit\n"
-    );
-    exit(1);
+    require_once __DIR__ . '/../../packages/php/src/KreuzbergExtensionMock.php';
 }
 
 $workspaceRoot = realpath(__DIR__ . '/../..');

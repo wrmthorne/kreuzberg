@@ -2,7 +2,7 @@
 //!
 //! This module provides functions to extract text content from PDF files using the pdfium-render library.
 
-use super::bindings::{bind_pdfium, PdfiumHandle};
+use super::bindings::{PdfiumHandle, bind_pdfium};
 use super::error::{PdfError, Result};
 use crate::core::config::PageConfig;
 use crate::pdf::metadata::PdfExtractionMetadata;
@@ -543,6 +543,9 @@ mod cache_regression_tests {
 
         // Log the cold/warm ratio for informational purposes
         let cold_warm_ratio = cold.as_micros() / warm1_micros;
-        eprintln!("Cold/Warm ratio: {}x (expected due to singleton initialization)", cold_warm_ratio);
+        eprintln!(
+            "Cold/Warm ratio: {}x (expected due to singleton initialization)",
+            cold_warm_ratio
+        );
     }
 }
