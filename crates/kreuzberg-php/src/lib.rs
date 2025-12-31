@@ -16,21 +16,21 @@ use ext_php_rs::builders::FunctionBuilder;
 use ext_php_rs::prelude::*;
 use ext_php_rs::types::Zval;
 
-mod config;
-mod embeddings;
-mod error;
-mod extraction;
-mod plugins;
-mod types;
-mod validation;
+pub mod config;
+pub mod embeddings;
+pub mod error;
+pub mod extraction;
+pub mod plugins;
+pub mod types;
+pub mod validation;
 
-use config::*;
-use embeddings::*;
-use error::*;
-use extraction::*;
-use plugins::*;
-use types::*;
-use validation::*;
+pub use config::*;
+pub use embeddings::*;
+pub use error::*;
+pub use extraction::*;
+pub use plugins::*;
+pub use types::*;
+pub use validation::*;
 
 /// Get the Kreuzberg library version.
 ///

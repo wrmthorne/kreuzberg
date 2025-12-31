@@ -19,9 +19,30 @@ module Kreuzberg
       when /linux/
         prepend_env('LD_LIBRARY_PATH', lib_dir)
       when /mswin|mingw|cygwin/
+        # Windows uses PATH to locate DLLs
         prepend_env('PATH', lib_dir, separator: ';')
+        # Also check common locations for PDFium on Windows
+        setup_windows_library_paths(lib_dir)
       end
     end
+
+    def setup_windows_library_paths(lib_dir)
+      # Add target/release to PATH for DLL lookup during development
+      target_release = File.expand_path('../../target/release', lib_dir)
+      prepend_env('PATH', target_release, separator: ';') if Dir.exist?(target_release)
+
+      # Check for short path CARGO_TARGET_DIR (CI uses C:\t)
+      cargo_target_dir = ENV.fetch('CARGO_TARGET_DIR', nil)
+      return unless cargo_target_dir
+
+      target_release_alt = File.join(cargo_target_dir, 'release')
+      prepend_env('PATH', target_release_alt, separator: ';') if Dir.exist?(target_release_alt)
+
+      # Also check for target-specific subdirectory (Windows GNU builds)
+      gnu_release = File.join(cargo_target_dir, 'x86_64-pc-windows-gnu', 'release')
+      prepend_env('PATH', gnu_release, separator: ';') if Dir.exist?(gnu_release)
+    end
+    private_class_method :setup_windows_library_paths
 
     def prepend_env(key, value, separator: ':')
       current = ENV.fetch(key, nil)

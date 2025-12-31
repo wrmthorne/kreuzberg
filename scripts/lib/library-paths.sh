@@ -63,18 +63,38 @@ setup_rust_ffi_paths() {
   [ -z "$repo_root" ] && return 0
 
   local ffi_lib="$repo_root/target/release"
-  [ ! -d "$ffi_lib" ] && return 0
+  local ffi_lib_gnu="$repo_root/target/x86_64-pc-windows-gnu/release"
 
   local platform="${RUNNER_OS:-$(uname -s)}"
   case "$platform" in
   Linux)
+    [ ! -d "$ffi_lib" ] && return 0
     export LD_LIBRARY_PATH="${ffi_lib}:${LD_LIBRARY_PATH:-}"
     echo "✓ Set LD_LIBRARY_PATH for Rust FFI"
     ;;
   macOS | Darwin)
+    [ ! -d "$ffi_lib" ] && return 0
     export DYLD_LIBRARY_PATH="${ffi_lib}:${DYLD_LIBRARY_PATH:-}"
     export DYLD_FALLBACK_LIBRARY_PATH="${ffi_lib}:${DYLD_FALLBACK_LIBRARY_PATH:-}"
     echo "✓ Set DYLD_LIBRARY_PATH for Rust FFI on macOS"
+    ;;
+  Windows | MINGW* | MSYS* | CYGWIN*)
+    # Check for short path CI directories first
+    local cargo_target="${CARGO_TARGET_DIR:-}"
+    if [ -n "$cargo_target" ] && [ -d "$cargo_target/release" ]; then
+      export PATH="${cargo_target}/release;${PATH:-}"
+      echo "✓ Set PATH for Rust FFI (using CARGO_TARGET_DIR=$cargo_target)"
+    fi
+    # Add GNU target path if it exists
+    if [ -d "$ffi_lib_gnu" ]; then
+      export PATH="${ffi_lib_gnu};${PATH:-}"
+      echo "✓ Set PATH for Rust FFI GNU target"
+    fi
+    # Add standard target path if it exists
+    if [ -d "$ffi_lib" ]; then
+      export PATH="${ffi_lib};${PATH:-}"
+      echo "✓ Set PATH for Rust FFI on Windows"
+    fi
     ;;
   esac
 }

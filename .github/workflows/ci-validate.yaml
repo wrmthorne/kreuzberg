@@ -182,7 +182,7 @@ jobs:
       - name: Run prek hooks
         uses: j178/prek-action@v1.0.11
         with:
-          extra-args: --all-files --show-diff-on-failure
+          extra-args: --all-files
 
       - name: Check final disk space
         if: always()

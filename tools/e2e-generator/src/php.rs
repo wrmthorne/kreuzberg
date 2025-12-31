@@ -33,7 +33,7 @@ class Helpers
     public static function getWorkspaceRoot(): string
     {
         if (self::$workspaceRoot === null) {
-            self::$workspaceRoot = realpath(__DIR__ . '/../../../..');
+            self::$workspaceRoot = realpath(__DIR__ . '/../../..');
         }
         return self::$workspaceRoot;
     }

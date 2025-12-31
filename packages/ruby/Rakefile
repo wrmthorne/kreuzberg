@@ -23,6 +23,7 @@ Rake::ExtensionTask.new('kreuzberg_rb', GEMSPEC) do |ext|
     x86_64-darwin
     arm64-darwin
     x64-mingw32
+    x64-mingw-ucrt
   ]
 end
 
