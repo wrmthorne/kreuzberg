@@ -230,17 +230,48 @@ jobs:
         run: |
           echo "=== Rust Toolchain ==="
           rustup toolchain list
+          rustup show
           echo ""
           echo "=== Rust Targets ==="
           rustup target list | grep installed
           echo ""
           echo "=== Rust compiler details ==="
           rustc -vV
+          rustc --print target-list | grep windows || true
           echo ""
           echo "=== Cargo config ==="
           if [ -f .cargo/config.toml ]; then
             cat .cargo/config.toml
           fi
+          echo ""
+          echo "=== Environment Variables ==="
+          env | grep -E "RUST|CARGO|BINDGEN|AWS_LC|CMAKE|CC|CXX|OPENSSL" | sort || true
+
+      - name: Verify Windows toolchain (Windows only)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          echo "=== Windows Toolchain Verification ==="
+          echo "Checking MinGW/GCC toolchain..."
+          which gcc || echo "gcc not found in PATH"
+          which g++ || echo "g++ not found in PATH"
+          gcc --version 2>/dev/null || echo "gcc version check failed"
+          g++ --version 2>/dev/null || echo "g++ version check failed"
+          echo ""
+          echo "Checking x86_64-pc-windows-gnu target..."
+          rustup target list | grep x86_64-pc-windows-gnu
+          echo ""
+          echo "Checking linker..."
+          rustc --print target-cpus 2>/dev/null | head -5 || true
+          echo ""
+          echo "PATH (first 10 entries):"
+          echo "$PATH" | tr ':' '\n' | head -10
+          echo ""
+          echo "MSYSTEM: ${MSYSTEM:-not set}"
+          echo "MSYSTEM_PREFIX: ${MSYSTEM_PREFIX:-not set}"
+          echo ""
+          echo "=== Bindgen Configuration ==="
+          env | grep BINDGEN || echo "No BINDGEN vars set yet"
 
       - name: Clean cargo fingerprints to avoid Windows path conflicts
         if: runner.os == 'Windows'
@@ -256,8 +287,49 @@ jobs:
         shell: bash
         run: |
           echo "=== Building FFI Library ==="
+          echo "Platform: ${{ runner.os }}"
           echo "Building kreuzberg-ffi from source (no caching)"
-          cargo build --release --package kreuzberg-ffi
+          echo ""
+          echo "Current directory: $(pwd)"
+          echo "Target directory: ${CARGO_TARGET_DIR:-target}"
+          echo ""
+
+          # Set verbose cargo output for Windows to diagnose failures
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            export CARGO_LOG="cargo::core::compiler::fingerprint=info,cargo::core::compiler::build_context=debug"
+            export RUST_BACKTRACE=1
+            echo "Windows build: Using verbose cargo logging"
+            echo "CARGO_LOG=$CARGO_LOG"
+            echo "Target: x86_64-pc-windows-gnu"
+            echo ""
+          fi
+
+          # Build with verbose output
+          echo "Starting cargo build..."
+          cargo build --release --package kreuzberg-ffi --verbose --message-format short 2>&1 | tee /tmp/cargo-build.log || {
+            EXIT_CODE=$?
+            echo ""
+            echo "=== BUILD FAILED (exit code: $EXIT_CODE) ==="
+            echo ""
+            echo "=== Last 100 lines of build output ==="
+            tail -100 /tmp/cargo-build.log || true
+            echo ""
+            echo "=== Checking for common Windows build issues ==="
+            if [ "${{ runner.os }}" = "Windows" ]; then
+              echo "Checking for linker errors..."
+              grep -i "linker.*error\|ld.*error\|undefined reference" /tmp/cargo-build.log | tail -20 || echo "No linker errors found in log"
+              echo ""
+              echo "Checking for bindgen errors..."
+              grep -i "bindgen.*error\|clang.*error" /tmp/cargo-build.log | tail -20 || echo "No bindgen errors found in log"
+              echo ""
+              echo "Checking GCC/MinGW availability..."
+              which gcc g++ x86_64-w64-mingw32-gcc 2>/dev/null || echo "MinGW tools not in PATH"
+            fi
+            exit $EXIT_CODE
+          }
+
+          echo ""
+          echo "=== Build completed successfully ==="
 
       - name: Print post-FFI build status (Windows)
         if: runner.os == 'Windows'
@@ -283,10 +355,44 @@ jobs:
 
       - name: Build Ruby gem
         shell: bash
-        run: task ruby:build:ci
+        run: |
+          echo "=== Building Ruby Gem ==="
+          echo "Platform: ${{ runner.os }}"
+          echo ""
+          echo "=== Ruby Build Environment ==="
+          echo "Ruby version: $(ruby --version)"
+          echo "Ruby platform: $(ruby -e 'puts RUBY_PLATFORM')"
+          echo "RbConfig CONFIG: $(ruby -rrbconfig -e 'puts RbConfig::CONFIG["host"]')"
+          echo ""
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            echo "=== Windows-specific environment ==="
+            echo "Checking for required libraries in target/release..."
+            ls -lh target/release/*.{dll,a} 2>/dev/null || echo "No DLL/archive files found yet"
+            echo ""
+          fi
+
+          task ruby:build:ci 2>&1 | tee /tmp/gem-build.log || {
+            EXIT_CODE=$?
+            echo ""
+            echo "=== GEM BUILD FAILED (exit code: $EXIT_CODE) ==="
+            echo ""
+            echo "=== Last 100 lines of gem build output ==="
+            tail -100 /tmp/gem-build.log || true
+            echo ""
+            if [ "${{ runner.os }}" = "Windows" ]; then
+              echo "=== Windows gem build diagnostics ==="
+              echo "Checking for native extension errors..."
+              grep -i "error\|failed\|fatal" /tmp/gem-build.log | tail -30 || echo "No obvious errors found"
+              echo ""
+              echo "Checking mkmf.log if exists..."
+              find packages/ruby -name "mkmf.log" -exec tail -50 {} \; 2>/dev/null || echo "mkmf.log not found"
+            fi
+            exit $EXIT_CODE
+          }
         env:
           RB_SYS_VERBOSE: "1"
           CARGO_BUILD_JOBS: "1"
+          RUST_BACKTRACE: "1"
 
       - name: Print gem build artifacts
         if: always()
@@ -333,6 +439,19 @@ jobs:
           fi
           echo "  pkg-config file:"
           ls -lh crates/kreuzberg-ffi/kreuzberg-ffi.pc 2>/dev/null || echo "    (not found)"
+
+      - name: Upload build logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: build-logs-${{ matrix.os }}
+          path: |
+            /tmp/cargo-build.log
+            /tmp/gem-build.log
+            packages/ruby/**/mkmf.log
+            packages/ruby/tmp/**/*.log
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Cleanup Rust cache
         if: always()

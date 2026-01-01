@@ -6,9 +6,33 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 Write-Host "=== Configuring bindgen compatibility headers for Windows ===" -ForegroundColor Cyan
+Write-Host ""
+
+# Check environment
+Write-Host "Environment check:" -ForegroundColor Yellow
+Write-Host "  GITHUB_WORKSPACE: $env:GITHUB_WORKSPACE"
+Write-Host "  MSYSTEM: $($env:MSYSTEM ?? 'not set')"
+Write-Host "  MSYSTEM_PREFIX: $($env:MSYSTEM_PREFIX ?? 'not set')"
+Write-Host ""
 
 $includeRoot = "$env:GITHUB_WORKSPACE\packages\ruby\ext\kreuzberg_rb\native\include"
 $compat = "$includeRoot\msvc_compat"
+
+# Verify directories exist
+Write-Host "Verifying include directories:" -ForegroundColor Yellow
+if (Test-Path $includeRoot) {
+    Write-Host "  [OK] Include root exists: $includeRoot" -ForegroundColor Green
+} else {
+    Write-Host "  [WARN] Include root missing: $includeRoot" -ForegroundColor Red
+}
+
+if (Test-Path $compat) {
+    Write-Host "  [OK] MSVC compat directory exists: $compat" -ForegroundColor Green
+} else {
+    Write-Host "  [WARN] MSVC compat directory missing: $compat" -ForegroundColor Red
+}
+Write-Host ""
+
 $includeRoot = $includeRoot -replace '\\','/'
 $compatForward = $compat -replace '\\','/'
 
@@ -19,15 +43,40 @@ $extra = "-I$includeRoot -I$compatForward -fms-extensions -fstack-protector-stro
 if ($env:MSYSTEM_PREFIX) {
     $sysroot = "$env:MSYSTEM_PREFIX" -replace '\\','/'
     $extra += " --target=x86_64-pc-windows-gnu --sysroot=$sysroot"
-    Write-Host "MSYS2 detected: Using sysroot $sysroot"
+    Write-Host "MSYS2 detected:" -ForegroundColor Yellow
+    Write-Host "  Sysroot: $sysroot" -ForegroundColor Green
+    Write-Host "  Target: x86_64-pc-windows-gnu" -ForegroundColor Green
+} else {
+    Write-Host "MSYS2 not detected (MSYSTEM_PREFIX not set)" -ForegroundColor Yellow
 }
+Write-Host ""
+
+# Check for clang
+Write-Host "Checking for clang:" -ForegroundColor Yellow
+$clangPath = Get-Command clang -ErrorAction SilentlyContinue
+if ($clangPath) {
+    Write-Host "  [OK] clang found: $($clangPath.Source)" -ForegroundColor Green
+    try {
+        $clangVersion = & clang --version 2>&1 | Select-Object -First 1
+        Write-Host "  Version: $clangVersion" -ForegroundColor Green
+    } catch {
+        Write-Host "  [WARN] Could not get clang version" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "  [WARN] clang not found in PATH" -ForegroundColor Red
+    Write-Host "  PATH entries:" -ForegroundColor Yellow
+    $env:PATH -split ';' | Select-Object -First 10 | ForEach-Object { Write-Host "    $_" }
+}
+Write-Host ""
 
 # Set for all possible target formats (bindgen uses different naming conventions)
+Write-Host "Setting BINDGEN_EXTRA_CLANG_ARGS environment variables:" -ForegroundColor Yellow
 Add-Content -Path $env:GITHUB_ENV -Value "BINDGEN_EXTRA_CLANG_ARGS=$extra"
 Add-Content -Path $env:GITHUB_ENV -Value "BINDGEN_EXTRA_CLANG_ARGS_x86_64-pc-windows-msvc=$extra"
 Add-Content -Path $env:GITHUB_ENV -Value "BINDGEN_EXTRA_CLANG_ARGS_x86_64_pc_windows_msvc=$extra"
 Add-Content -Path $env:GITHUB_ENV -Value "BINDGEN_EXTRA_CLANG_ARGS_x86_64-pc-windows-gnu=$extra"
 Add-Content -Path $env:GITHUB_ENV -Value "BINDGEN_EXTRA_CLANG_ARGS_x86_64_pc_windows_gnu=$extra"
 
-Write-Host "BINDGEN_EXTRA_CLANG_ARGS set to: $extra"
+Write-Host "  BINDGEN_EXTRA_CLANG_ARGS = $extra" -ForegroundColor Green
+Write-Host ""
 Write-Host "Configuration complete" -ForegroundColor Green
