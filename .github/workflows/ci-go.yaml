@@ -201,7 +201,7 @@ jobs:
           PKG_CONFIG_PATH: ${{ env.PKG_CONFIG_PATH }}
 
       - name: Upload FFI library
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
           name: go-ffi-lib-${{ matrix.os }}
           path: |
