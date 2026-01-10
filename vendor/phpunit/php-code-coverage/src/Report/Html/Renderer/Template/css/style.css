@@ -58,7 +58,7 @@ nav .breadcrumb {
 }
 
 .table-borderless th, .table-borderless td {
- border: 0 !important;
+ border: 0;
 }
 
 .table tbody tr.covered-by-large-tests, .table tbody tr.covered-by-large-tests td, li.covered-by-large-tests, tr.success, tr.success td, td.success, li.success, span.success {
@@ -189,13 +189,13 @@ table#code td:first-of-type a {
 }
 
 .progress-bar.bg-success {
- background-color: var(--phpunit-success-bar) !important;
+ background-color: var(--phpunit-success-bar);
 }
 
 .progress-bar.bg-warning {
- background-color: var(--phpunit-warning-bar) !important;
+ background-color: var(--phpunit-warning-bar);
 }
 
 .progress-bar.bg-danger {
- background-color: var(--phpunit-danger-bar) !important;
+ background-color: var(--phpunit-danger-bar);
 }

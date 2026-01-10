@@ -9,18 +9,15 @@
 	"conflict": {
 		"phpstan/phpstan-shim": "*"
 	},
-	"bin": [
-		"phpstan",
-		"phpstan.phar"
-	],
+	"bin": ["phpstan", "phpstan.phar"],
 	"autoload": {
 		"files": ["bootstrap.php"]
 	},
-    "source": {
-        "type": "",
-        "url": "",
-        "reference": ""
-    },
+	"source": {
+		"type": "",
+		"url": "",
+		"reference": ""
+	},
 	"support": {
 		"issues": "https://github.com/phpstan/phpstan/issues",
 		"forum": "https://github.com/phpstan/phpstan/discussions",
