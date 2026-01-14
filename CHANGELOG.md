@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Eliminates manual download and configuration steps
   - Security hardened: semver validation, path traversal protection, decompression bomb prevention, HTTP timeout
 
+### Fixed
+
+#### Elixir
+- **Precompiled NIF checksums**: Fixed Hex package publishing to include actual SHA256 checksums instead of generator script
+  - Added `mix rustler_precompiled.download` step to CI before Hex publish
+  - Users can now install kreuzberg from Hex without compilation errors
+  - Fixes "precompiled NIF file does not exist in the checksum file" error
+
 ---
 
 ## [4.0.4] - 2026-01-13

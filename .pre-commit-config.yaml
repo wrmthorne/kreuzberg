@@ -36,7 +36,7 @@ repos:
 
   # Python: ruff (linting + formatting) + mypy (type checking)
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.10
+    rev: v0.14.11
     hooks:
       - id: ruff
         args: [--fix]
@@ -60,7 +60,7 @@ repos:
         args: ["--workspace", "--all-features", "--all-targets", "--", "-D", "warnings", "-A", "clippy::collapsible_if"]
 
   - repo: https://github.com/EmbarkStudios/cargo-deny
-    rev: 0.18.9
+    rev: 0.19.0
     hooks:
       - id: cargo-deny
         args: ["check"]
@@ -68,7 +68,7 @@ repos:
 
   # Node.js/TypeScript: biome (formatting + linting)
   - repo: https://github.com/biomejs/pre-commit
-    rev: v2.3.10
+    rev: v2.3.11
     hooks:
       - id: biome-check
         files: ^(crates/kreuzberg-node|crates/kreuzberg-wasm|tools/benchmark-visualizer)/

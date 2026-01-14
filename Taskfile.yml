@@ -56,7 +56,6 @@ includes:
 vars:
   RUST_LOG: info
 
-
 tasks:
   setup:
     desc: "Install all dependencies and initialize project. Idempotent - safe to re-run anytime."
@@ -114,7 +113,6 @@ tasks:
       - task: php:test
       - task: elixir:test
 
-
   check:
     desc: Run all linting and formatting checks via prek
     cmds:
@@ -143,6 +141,8 @@ tasks:
       - task: php:update
       - echo "Updating Elixir dependencies..."
       - task: elixir:update
+      - echo "Updating prek dependencies..."
+      - prek autoupdate
       - echo "All dependencies updated"
 
   clean:
