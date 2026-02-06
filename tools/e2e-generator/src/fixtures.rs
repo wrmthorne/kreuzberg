@@ -514,6 +514,11 @@ pub fn load_fixtures(fixtures_dir: &Utf8Path) -> Result<Vec<Fixture>> {
 /// - Workers target cannot run Office fixtures (LibreOffice not available)
 /// - Workers target has a 500KB size limit for documents
 pub fn should_include_for_wasm(fixture: &Fixture, target: WasmTarget) -> bool {
+    // PaddleOCR requires ONNX Runtime which is not available in WASM
+    if fixture.skip().requires_feature.iter().any(|f| f == "paddle-ocr") {
+        return false;
+    }
+
     if target == WasmTarget::Workers && fixture.category() == "office" {
         return false;
     }
