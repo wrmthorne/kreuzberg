@@ -122,8 +122,8 @@ def validate_benchmark_fixtures(repo_root: Path) -> list[str]:
         # Check if document path exists
         if "document" in fixture:
             doc_path = fixture["document"]
-            # Resolve relative path from fixtures directory
-            full_path = (fixtures_dir / doc_path).resolve()
+            # Resolve relative path from the fixture file's directory
+            full_path = (json_file.parent / doc_path).resolve()
 
             if not full_path.exists():
                 errors.append(f"Fixture {json_file.name}: Document not found: {doc_path}")
