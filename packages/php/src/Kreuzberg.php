@@ -13,7 +13,7 @@ use Kreuzberg\Types\ExtractionResult;
  *
  * Provides high-performance document intelligence powered by a Rust core.
  * Extract text, metadata, and structured data from PDFs, Office documents,
- * images, and 56+ file formats.
+ * images, and 75+ file formats.
  *
  * @example
  * ```php

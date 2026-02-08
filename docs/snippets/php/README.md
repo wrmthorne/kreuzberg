@@ -177,7 +177,7 @@ $results = batch_extract_files($files);
 
 ## Key Features Demonstrated
 
-- **56+ File Formats**: PDF, DOCX, XLSX, PPTX, images, HTML, and more
+- **75+ File Formats**: PDF, DOCX, XLSX, PPTX, images, HTML, and more
 - **OCR Support**: Tesseract integration with preprocessing
 - **Table Extraction**: Extract structured tables with multiple export formats
 - **Metadata**: Rich metadata extraction for all formats

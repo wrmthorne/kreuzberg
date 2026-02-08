@@ -8,7 +8,7 @@
 //
 // # Key Features
 //
-// - Unified API for 50+ document formats (PDF, PPTX, DOCX, XLSX, EML, images, etc.)
+// - Unified API for 75+ document formats (PDF, PPTX, DOCX, XLSX, EML, images, etc.)
 // - Automatic format detection via MIME type
 // - Metadata extraction (author, dates, language, keywords, custom properties, etc.)
 // - Table detection and structured extraction
@@ -240,7 +240,7 @@
 //
 // # Supported Formats
 //
-// Kreuzberg supports 50+ formats across multiple categories:
+// Kreuzberg supports 75+ formats across multiple categories:
 //
 //	Documents: PDF, DOCX, DOC, DOCM, ODT, RTF, PPTX, PPT, POTX, XLSX, XLS, CSV, TSV, ODS
 //	Web: HTML, XML, JSON, YAML, TOML, INI

@@ -6,7 +6,7 @@
   <description>
     Kreuzberg is a native PHP extension wrapping the Rust-based Kreuzberg document intelligence engine.
     It provides fast, efficient extraction of text, metadata, and structured information from PDFs,
-    Office documents, images, and 56+ file formats. Features include OCR support via Tesseract,
+    Office documents, images, and 75+ file formats. Features include OCR support via Tesseract,
     table extraction, text chunking for RAG applications, and vector embeddings generation.
   </description>
   <lead>
@@ -30,7 +30,7 @@
     Version 4.0.0 Stable Release
 
     This release includes:
-    - Full support for 56+ file formats (PDF, DOCX, XLSX, PPTX, images, etc.)
+    - Full support for 75+ file formats (PDF, DOCX, XLSX, PPTX, images, etc.)
     - OCR support via Tesseract integration
     - Table extraction from PDFs and documents
     - Metadata extraction

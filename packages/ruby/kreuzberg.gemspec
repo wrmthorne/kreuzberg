@@ -169,10 +169,10 @@ Gem::Specification.new do |spec|
   spec.authors = ['Na\'aman Hirschfeld']
   spec.email = ['nhirschfeld@gmail.com']
 
-  spec.summary = 'Document intelligence library — extract text from PDFs, Office docs, images, and 62+ formats'
+  spec.summary = 'Document intelligence library — extract text from PDFs, Office docs, images, and 75+ formats'
   spec.description = <<~DESC
     Kreuzberg is a high-performance document intelligence library with a Rust core and native
-    Ruby bindings via Magnus. Extract text, metadata, and structured data from 62+ file formats
+    Ruby bindings via Magnus. Extract text, metadata, and structured data from 75+ file formats
     including PDF, DOCX, PPTX, XLSX, HTML, RTF, images (with OCR), email, archives, and more.
     Features async/sync APIs, text chunking, language detection, and keyword extraction.
   DESC

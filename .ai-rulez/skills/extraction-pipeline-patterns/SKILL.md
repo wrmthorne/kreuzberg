@@ -5,7 +5,7 @@ priority: critical
 
 # Extraction Pipeline Patterns
 
-**Kreuzberg's format detection -> extraction -> fallback orchestration for 56+ file formats**
+**Kreuzberg's format detection -> extraction -> fallback orchestration for 75+ file formats**
 
 ## Core Pipeline Architecture
 
@@ -32,7 +32,7 @@ match (magic_bytes(content), extension) {
 }
 ```
 
-## Extraction Modules (56 Formats)
+## Extraction Modules (75 Formats)
 
 | Category | Extractors | Key Modules |
 |----------|-----------|------------|

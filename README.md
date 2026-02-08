@@ -54,13 +54,13 @@
   </a>
 </div>
 
-Extract text and metadata from a wide range of file formats (62+), generate embeddings and post-process at native speeds without needing a GPU.
+Extract text and metadata from a wide range of file formats (75+), generate embeddings and post-process at native speeds without needing a GPU.
 
 ## Key Features
 
 - **Extensible architecture** – Plugin system for custom OCR backends, validators, post-processors, and document extractors
 - **Polyglot** – Native bindings for Rust, Python, TypeScript/Node.js, Ruby, Go, Java, C#, PHP, and Elixir
-- **62+ file formats** – PDF, Office documents, images, HTML, XML, emails, archives, academic formats across 8 categories
+- **75+ file formats** – PDF, Office documents, images, HTML, XML, emails, archives, academic formats across 8 categories
 - **OCR support** – Tesseract (all languages via native binding), EasyOCR/PaddleOCR (Python), Guten (Node.js), extensible via plugin API
 - **High performance** – Rust core with native PDFium, SIMD optimizations and full parallelism
 - **Flexible deployment** – Use as library, CLI tool, REST API server, or MCP server
@@ -133,15 +133,15 @@ To use embeddings functionality:
 
 ## Supported Formats
 
-60+ file formats across 8 major categories with intelligent format detection and comprehensive metadata extraction.
+75+ file formats across 8 major categories with intelligent format detection and comprehensive metadata extraction.
 
 ### Office Documents
 
 | Category | Formats | Capabilities |
 |----------|---------|--------------|
-| **Word Processing** | `.docx`, `.odt` | Full text, tables, images, metadata, styles |
+| **Word Processing** | `.docx`, `.odt` | Full text, tables, lists, images, metadata, styles |
 | **Spreadsheets** | `.xlsx`, `.xlsm`, `.xlsb`, `.xls`, `.xla`, `.xlam`, `.xltm`, `.ods` | Sheet data, formulas, cell metadata, charts |
-| **Presentations** | `.pptx`, `.ppt`, `.ppsx` | Slides, speaker notes, images, metadata |
+| **Presentations** | `.pptx`, `.pptm`, `.ppsx` | Slides, speaker notes, images, metadata |
 | **PDF** | `.pdf` | Text, tables, images, metadata, OCR support |
 | **eBooks** | `.epub`, `.fb2` | Chapters, metadata, embedded resources |
 
@@ -150,7 +150,7 @@ To use embeddings functionality:
 | Category | Formats | Features |
 |----------|---------|----------|
 | **Raster** | `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.bmp`, `.tiff`, `.tif` | OCR, table detection, EXIF metadata, dimensions, color space |
-| **Advanced** | `.jp2`, `.jpx`, `.jpm`, `.mj2`, `.jbig2`, `.jb2`, `.pnm`, `.pbm`, `.pgm`, `.ppm` | OCR via hayro-jpeg2000 (pure Rust decoder), JBIG2 support, table detection, format-specific metadata |
+| **Advanced** | `.jp2`, `.jpx`, `.jpm`, `.mj2`, `.jbig2`, `.jb2`, `.pnm`, `.pbm`, `.pgm`, `.ppm` | Pure Rust decoders (JPEG 2000, JBIG2), OCR, table detection |
 | **Vector** | `.svg` | DOM parsing, embedded text, graphics metadata |
 
 ### Web & Data
@@ -159,22 +159,23 @@ To use embeddings functionality:
 |----------|---------|----------|
 | **Markup** | `.html`, `.htm`, `.xhtml`, `.xml`, `.svg` | DOM parsing, metadata (Open Graph, Twitter Card), link extraction |
 | **Structured Data** | `.json`, `.yaml`, `.yml`, `.toml`, `.csv`, `.tsv` | Schema detection, nested structures, validation |
-| **Text & Markdown** | `.txt`, `.md`, `.markdown`, `.djot`, `.rst`, `.org`, `.rtf` | CommonMark, GFM, Djot, reStructuredText, Org Mode |
+| **Text & Markdown** | `.txt`, `.md`, `.markdown`, `.djot`, `.rst`, `.org`, `.rtf` | CommonMark, GFM, Djot, reStructuredText, Org Mode, Rich Text |
 
 ### Email & Archives
 
 | Category | Formats | Features |
 |----------|---------|----------|
-| **Email** | `.eml`, `.msg` | Headers, body (HTML/plain), attachments, threading |
-| **Archives** | `.zip`, `.tar`, `.tgz`, `.gz`, `.7z` | File listing, nested archives, metadata |
+| **Email** | `.eml`, `.msg` | Headers, body (HTML/plain), attachments, UTF-16 support |
+| **Archives** | `.zip`, `.tar`, `.tgz`, `.gz`, `.7z` | Recursive extraction, nested archives, metadata |
 
 ### Academic & Scientific
 
 | Category | Formats | Features |
 |----------|---------|----------|
-| **Citations** | `.bib`, `.biblatex`, `.ris`, `.nbib`, `.enw`, `.csl` | Structured parsing: RIS (structured), PubMed/MEDLINE, EndNote XML (structured), BibTeX, CSL JSON |
-| **Scientific** | `.tex`, `.latex`, `.typ`, `.jats`, `.nbib`, `.ipynb`, `.docbook` | LaTeX, Jupyter notebooks, PubMed JATS, PubMed/MEDLINE citations |
-| **Documentation** | `.opml`, `.pod`, `.mdoc`, `.troff` | Technical documentation formats |
+| **Citations** | `.bib`, `.ris`, `.nbib`, `.enw`, `.csl` | BibTeX/BibLaTeX, RIS, PubMed/MEDLINE, EndNote XML, CSL JSON |
+| **Scientific** | `.tex`, `.latex`, `.typ`, `.typst`, `.jats`, `.ipynb` | LaTeX, Typst, JATS journal articles, Jupyter notebooks |
+| **Publishing** | `.fb2`, `.docbook`, `.dbk`, `.opml` | FictionBook, DocBook XML, OPML outlines |
+| **Documentation** | `.pod`, `.mdoc`, `.troff` | Perl POD, man pages, troff |
 
 **[Complete Format Reference →](https://docs.kreuzberg.dev/reference/formats/)**
 

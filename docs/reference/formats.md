@@ -1,6 +1,6 @@
 # Format Support
 
-Kreuzberg supports 62+ file formats across major categories, providing comprehensive document intelligence capabilities through native Rust extractors and LibreOffice conversion.
+Kreuzberg supports 75+ file formats across major categories, providing comprehensive document intelligence capabilities through native Rust extractors and LibreOffice conversion.
 
 ## Overview
 
@@ -45,7 +45,7 @@ All formats support async/await and batch processing. Image formats and PDFs sup
 | Format | Extensions | MIME Type | Extraction Method | OCR Support | Special Features |
 |--------|-----------|-----------|-------------------|-------------|------------------|
 | JSON | `.json` | `application/json`, `text/json` | Native Rust (serde_json) | No | Field counting, nested structure extraction |
-| YAML | `.yaml` | `application/x-yaml`, `text/yaml`, `text/x-yaml` | Native Rust (serde_yaml) | No | Multi-document support, field counting |
+| YAML | `.yaml`, `.yml` | `application/x-yaml`, `text/yaml`, `text/x-yaml` | Native Rust (serde_yaml) | No | Multi-document support, field counting |
 | TOML | `.toml` | `application/toml`, `text/toml` | Native Rust (toml crate) | No | Configuration file support |
 | CSV | `.csv` | `text/csv` | Native Rust | No | Tabular data extraction |
 | TSV | `.tsv` | `text/tab-separated-values` | Native Rust | No | Tab-separated data extraction |
@@ -54,7 +54,7 @@ All formats support async/await and batch processing. Image formats and PDFs sup
 
 | Format | Extensions | MIME Type | Extraction Method | OCR Support | Special Features |
 |--------|-----------|-----------|-------------------|-------------|------------------|
-| EML | `.eml` | `message/rfc822` | Native Rust (mail-parser) | No | Header extraction, attachment listing, body text |
+| EML | `.eml` | `message/rfc822` | Native Rust (mail-parser) | No | Header extraction, attachment listing, body text, UTF-16 support |
 | MSG | `.msg` | `application/vnd.ms-outlook` | Native Rust (mail-parser) | No | Outlook message support, metadata extraction |
 
 ### Images
@@ -78,7 +78,7 @@ All image formats support OCR when configured with `ocr` parameter in `Extractio
 | Format | Extensions | MIME Type | Extraction Method | OCR Support | Special Features |
 |--------|-----------|-----------|-------------------|-------------|------------------|
 | ZIP | `.zip` | `application/zip`, `application/x-zip-compressed` | Native Rust (zip crate) | No | File listing, text content extraction |
-| TAR | `.tar`, `.tgz` | `application/x-tar`, `application/tar`, `application/x-gtar`, `application/x-ustar` | Native Rust (tar crate) | No | Unix archive support, compression detection |
+| TAR | `.tar`, `.tgz` | `application/x-tar`, `application/tar`, `application/x-gtar`, `application/x-ustar` | Native Rust (tar crate) | No | Unix archive support, gzip compression detection |
 | 7-Zip | `.7z` | `application/x-7z-compressed` | Native Rust (sevenz-rust) | No | High compression format support |
 | Gzip | `.gz` | `application/gzip`, `application/x-gzip` | Native Rust (flate2) | No | Gzip decompression with text extraction |
 
@@ -89,16 +89,16 @@ All image formats support OCR when configured with `ocr` parameter in `Extractio
 | LaTeX | `.tex`, `.latex` | `application/x-latex`, `text/x-tex` | Native (manual parser) | No | Full LaTeX document support |
 | EPUB | `.epub` | `application/epub+zip` | Native (zip + roxmltree + html-to-markdown-rs) | No | E-book format, metadata extraction |
 | BibTeX | `.bib` | `application/x-bibtex`, `application/x-biblatex` | Native (biblatex) | No | Bibliography database support |
-| Typst | `.typst` | `application/x-typst` | Native (typst-syntax) | No | Modern typesetting format |
+| Typst | `.typst`, `.typ` | `application/x-typst` | Native (typst-syntax) | No | Modern typesetting format |
 | Jupyter Notebook | `.ipynb` | `application/x-ipynb+json` | Native (JSON parsing) | No | Code cells, markdown cells, output extraction |
-| FictionBook | - | `application/x-fictionbook+xml` | Native (fb2) | No | XML-based e-book format |
-| DocBook | - | `application/docbook+xml` | Native (roxmltree) | No | Technical documentation format |
-| JATS | - | `application/x-jats+xml` | Native (roxmltree) | No | Journal article XML format |
-| OPML | - | `application/x-opml+xml` | Native (roxmltree) | No | Outline format |
+| FictionBook | `.fb2` | `application/x-fictionbook+xml` | Native (fb2) | No | XML-based e-book format |
+| DocBook | `.docbook`, `.dbk` | `application/docbook+xml` | Native (roxmltree) | No | Technical documentation format |
+| JATS | `.jats` | `application/x-jats+xml` | Native (roxmltree) | No | Journal article XML format |
+| OPML | `.opml` | `application/x-opml+xml` | Native (roxmltree) | No | Outline format |
 | RIS | `.ris` | `application/x-research-info-systems` | Native (biblib) | No | Structured citation parsing with title, authors, DOI, and abstract extraction |
 | EndNote XML | `.enw` | `application/x-endnote+xml` | Native (biblib) | No | Structured citation parsing with title, authors, DOI, and keywords extraction |
 | PubMed/MEDLINE | `.nbib` | `application/x-pubmed` | Native (biblib) | No | Structured citation parsing with author affiliations, MeSH terms, and abstract |
-| CSL JSON | - | `application/csl+json` | Native (JSON parser) | No | Citation Style Language JSON |
+| CSL JSON | `.csl` | `application/csl+json` | Native (JSON parser) | No | Citation Style Language JSON |
 
 ### Markdown Variants (Native)
 
@@ -248,7 +248,7 @@ sudo dnf install libreoffice
 
 Kreuzberg automatically detects file formats using:
 
-1. **File Extension Mapping**: 60+ formats mapped to MIME types
+1. **File Extension Mapping**: 75+ formats mapped to MIME types
 2. **mime_guess Crate**: Fallback for unknown extensions
 3. **Manual Override**: Explicit MIME type can be provided
 

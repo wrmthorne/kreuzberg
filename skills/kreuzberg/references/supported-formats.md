@@ -1,6 +1,6 @@
 # Supported Formats Reference
 
-Kreuzberg supports 62+ file formats across 8 major categories with intelligent format detection and comprehensive metadata extraction. All formats support text and metadata extraction. Additional capabilities like OCR and table detection are noted per format.
+Kreuzberg supports 75+ file formats across 8 major categories with intelligent format detection and comprehensive metadata extraction. All formats support text and metadata extraction. Additional capabilities like OCR and table detection are noted per format.
 
 ## Office Documents
 
@@ -160,7 +160,7 @@ Kreuzberg supports 62+ file formats across 8 major categories with intelligent f
 ## Format Capabilities Summary
 
 ### Text Extraction
-All 62+ formats support full or partial text extraction. Document structure and encoding are automatically detected.
+All 75+ formats support full or partial text extraction. Document structure and encoding are automatically detected.
 
 ### Metadata Support
 Comprehensive metadata extraction includes:

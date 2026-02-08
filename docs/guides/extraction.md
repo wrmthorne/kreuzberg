@@ -338,7 +338,7 @@ flowchart TD
 
 ## Supported Formats
 
-Kreuzberg supports 56 file formats across 8 categories:
+Kreuzberg supports 75 file formats across 8 categories:
 
 | Format | Extensions | Notes |
 |--------|-----------|-------|

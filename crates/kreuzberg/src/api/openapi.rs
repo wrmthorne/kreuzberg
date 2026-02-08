@@ -16,7 +16,7 @@ use utoipa::OpenApi;
     info(
         title = "Kreuzberg API",
         version = env!("CARGO_PKG_VERSION"),
-        description = "High-performance document intelligence API for extracting text, metadata, and structured data from PDFs, Office documents, images, and 50+ formats.",
+        description = "High-performance document intelligence API for extracting text, metadata, and structured data from PDFs, Office documents, images, and 75+ formats.",
         contact(
             name = "Kreuzberg",
             url = "https://kreuzberg.dev"

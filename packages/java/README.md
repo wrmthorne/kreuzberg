@@ -1,4 +1,4 @@
-# WebAssembly
+# Java
 
 <div align="center" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 20px 0;">
   <!-- Language Bindings -->
@@ -55,7 +55,7 @@
 </div>
 
 
-Extract text, tables, images, and metadata from 75+ file formats including PDF, Office documents, and images. WebAssembly bindings for browsers, Deno, and Cloudflare Workers with portable deployment and multi-threading support.
+Extract text, tables, images, and metadata from 75+ file formats including PDF, Office documents, and images. Java bindings with type-safe API, Foreign Function & Memory API integration, and native performance.
 
 
 ## Installation
@@ -67,25 +67,21 @@ Install via one of the supported package managers:
 
 
 
-**npm:**
-```bash
-npm install @kreuzberg/wasm
+**Maven:**
+```xml
+<dependency>
+    <groupId>dev.kreuzberg</groupId>
+    <artifactId>kreuzberg</artifactId>
+    <version>4.0.0</version>
+</dependency>
 ```
 
 
 
 
-**pnpm:**
-```bash
-pnpm add @kreuzberg/wasm
-```
-
-
-
-
-**yarn:**
-```bash
-yarn add @kreuzberg/wasm
+**Gradle:**
+```gradle
+implementation 'dev.kreuzberg:kreuzberg:4.0.0'
 ```
 
 
@@ -94,8 +90,9 @@ yarn add @kreuzberg/wasm
 
 ### System Requirements
 
-- Modern browser with WebAssembly support, or Deno 1.0+, or Cloudflare Workers
-- Optional: [Tesseract WASM](https://github.com/naptha/tesseract.js) for OCR functionality
+- **Java 11+** required
+- Optional: [ONNX Runtime](https://github.com/microsoft/onnxruntime/releases) version 1.22.x for embeddings support
+- Optional: [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) for OCR functionality
 
 
 
@@ -105,24 +102,30 @@ yarn add @kreuzberg/wasm
 
 Extract text, metadata, and structure from any supported document format:
 
-```ts
-import { extractBytes, initWasm } from "@kreuzberg/wasm";
+```java
+import dev.kreuzberg.Kreuzberg;
+import dev.kreuzberg.ExtractionResult;
+import java.io.IOException;
+import java.util.Map;
 
-async function main() {
-	await initWasm();
+public class BasicUsage {
+    public static void main(String[] args) throws IOException {
+        ExtractionResult result = Kreuzberg.extractFile("document.pdf");
 
-	const buffer = await fetch("document.pdf").then((r) => r.arrayBuffer());
-	const bytes = new Uint8Array(buffer);
+        System.out.println("Content:");
+        System.out.println(result.getContent());
 
-	const result = await extractBytes(bytes, "application/pdf");
+        System.out.println("\nMetadata:");
+        Map<String, Object> metadata = result.getMetadata();
+        if (metadata != null) {
+            System.out.println("Title: " + metadata.get("title"));
+            System.out.println("Author: " + metadata.get("author"));
+        }
 
-	console.log("Extracted content:");
-	console.log(result.content);
-	console.log("MIME type:", result.mimeType);
-	console.log("Metadata:", result.metadata);
+        System.out.println("\nTables found: " + result.getTables().size());
+        System.out.println("Images found: " + result.getImages().size());
+    }
 }
-
-main().catch(console.error);
 ```
 
 
@@ -135,34 +138,31 @@ Most use cases benefit from configuration to control extraction behavior:
 
 **With OCR (for scanned documents):**
 
-```ts
-import { enableOcr, extractBytes, initWasm } from "@kreuzberg/wasm";
+```java
+import dev.kreuzberg.Kreuzberg;
+import dev.kreuzberg.ExtractionResult;
+import dev.kreuzberg.KreuzbergException;
+import dev.kreuzberg.config.ExtractionConfig;
+import dev.kreuzberg.config.OcrConfig;
+import java.io.IOException;
 
-async function extractWithOcr() {
-	await initWasm();
+public class Main {
+    public static void main(String[] args) {
+        try {
+            ExtractionConfig config = ExtractionConfig.builder()
+                .ocr(OcrConfig.builder()
+                    .backend("tesseract")
+                    .language("eng")
+                    .build())
+                .build();
 
-	try {
-		await enableOcr();
-		console.log("OCR enabled successfully");
-	} catch (error) {
-		console.error("Failed to enable OCR:", error);
-		return;
-	}
-
-	const bytes = new Uint8Array(await fetch("scanned-page.png").then((r) => r.arrayBuffer()));
-
-	const result = await extractBytes(bytes, "image/png", {
-		ocr: {
-			backend: "tesseract-wasm",
-			language: "eng",
-		},
-	});
-
-	console.log("Extracted text:");
-	console.log(result.content);
+            ExtractionResult result = Kreuzberg.extractFile("scanned.pdf", config);
+            System.out.println(result.getContent());
+        } catch (IOException | KreuzbergException e) {
+            System.err.println("Extraction failed: " + e.getMessage());
+        }
+    }
 }
-
-extractWithOcr().catch(console.error);
 ```
 
 
@@ -178,39 +178,25 @@ See [Table Extraction Guide](https://kreuzberg.dev/features/table-extraction/) f
 #### Processing Multiple Files
 
 
-```ts
-import { extractBytes, initWasm } from "@kreuzberg/wasm";
+```java
+import dev.kreuzberg.Kreuzberg;
+import dev.kreuzberg.ExtractionResult;
+import dev.kreuzberg.KreuzbergException;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
-interface DocumentJob {
-	name: string;
-	bytes: Uint8Array;
-	mimeType: string;
-}
+try {
+    List<String> files = Arrays.asList("doc1.pdf", "doc2.docx", "doc3.pptx");
 
-async function _processBatch(documents: DocumentJob[], concurrency: number = 3) {
-	await initWasm();
+    List<ExtractionResult> results = Kreuzberg.batchExtractFiles(files, null);
 
-	const results: Record<string, string> = {};
-	const queue = [...documents];
-
-	const workers = Array(concurrency)
-		.fill(null)
-		.map(async () => {
-			while (queue.length > 0) {
-				const doc = queue.shift();
-				if (!doc) break;
-
-				try {
-					const result = await extractBytes(doc.bytes, doc.mimeType);
-					results[doc.name] = result.content;
-				} catch (error) {
-					console.error(`Failed to process ${doc.name}:`, error);
-				}
-			}
-		});
-
-	await Promise.all(workers);
-	return results;
+    for (int i = 0; i < results.size(); i++) {
+        ExtractionResult result = results.get(i);
+        System.out.println("File " + (i + 1) + ": " + result.getContent().length() + " characters");
+    }
+} catch (IOException | KreuzbergException e) {
+    e.printStackTrace();
 }
 ```
 
@@ -222,31 +208,23 @@ async function _processBatch(documents: DocumentJob[], concurrency: number = 3) 
 
 For non-blocking document processing:
 
-```ts
-import { extractBytes, getWasmCapabilities, initWasm } from "@kreuzberg/wasm";
+```java
+import dev.kreuzberg.Kreuzberg;
+import dev.kreuzberg.ExtractionResult;
+import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
-async function extractDocuments(files: Uint8Array[], mimeTypes: string[]) {
-	const caps = getWasmCapabilities();
-	if (!caps.hasWasm) {
-		throw new Error("WebAssembly not supported");
-	}
+public class Example {
+    public static void main(String[] args) {
+        CompletableFuture<ExtractionResult> future =
+            Kreuzberg.extractFileAsync(Path.of("document.pdf"), null);
 
-	await initWasm();
-
-	const results = await Promise.all(files.map((bytes, index) => extractBytes(bytes, mimeTypes[index])));
-
-	return results.map((r) => ({
-		content: r.content,
-		pageCount: r.metadata?.pageCount,
-	}));
+        future.thenAccept(result -> {
+            System.out.println(result.getContent());
+            System.out.println("Tables: " + result.getTables().size());
+        }).join();
+    }
 }
-
-const fileBytes = [new Uint8Array([1, 2, 3])];
-const mimes = ["application/pdf"];
-
-extractDocuments(fileBytes, mimes)
-	.then((results) => console.log(results))
-	.catch(console.error);
 ```
 
 
@@ -326,6 +304,8 @@ extractDocuments(fileBytes, mimes)
 - **Plugin System** - Extensible post-processing for custom text transformation
 
 
+- **Embeddings** - Generate vector embeddings using ONNX Runtime models
+
 - **Batch Processing** - Efficiently process multiple documents in parallel
 - **Memory Efficient** - Stream large files without loading entirely into memory
 - **Language Detection** - Detect and support multiple languages in documents
@@ -348,39 +328,36 @@ extractDocuments(fileBytes, mimes)
 Kreuzberg supports multiple OCR backends for extracting text from scanned documents and images:
 
 
-- **Tesseract-Wasm**
+- **Tesseract**
 
 
 ### OCR Configuration Example
 
-```ts
-import { enableOcr, extractBytes, initWasm } from "@kreuzberg/wasm";
+```java
+import dev.kreuzberg.Kreuzberg;
+import dev.kreuzberg.ExtractionResult;
+import dev.kreuzberg.KreuzbergException;
+import dev.kreuzberg.config.ExtractionConfig;
+import dev.kreuzberg.config.OcrConfig;
+import java.io.IOException;
 
-async function extractWithOcr() {
-	await initWasm();
+public class Main {
+    public static void main(String[] args) {
+        try {
+            ExtractionConfig config = ExtractionConfig.builder()
+                .ocr(OcrConfig.builder()
+                    .backend("tesseract")
+                    .language("eng")
+                    .build())
+                .build();
 
-	try {
-		await enableOcr();
-		console.log("OCR enabled successfully");
-	} catch (error) {
-		console.error("Failed to enable OCR:", error);
-		return;
-	}
-
-	const bytes = new Uint8Array(await fetch("scanned-page.png").then((r) => r.arrayBuffer()));
-
-	const result = await extractBytes(bytes, "image/png", {
-		ocr: {
-			backend: "tesseract-wasm",
-			language: "eng",
-		},
-	});
-
-	console.log("Extracted text:");
-	console.log(result.content);
+            ExtractionResult result = Kreuzberg.extractFile("scanned.pdf", config);
+            System.out.println(result.getContent());
+        } catch (IOException | KreuzbergException e) {
+            System.err.println("Extraction failed: " + e.getMessage());
+        }
+    }
 }
-
-extractWithOcr().catch(console.error);
 ```
 
 
@@ -390,31 +367,23 @@ extractWithOcr().catch(console.error);
 
 This binding provides full async/await support for non-blocking document processing:
 
-```ts
-import { extractBytes, getWasmCapabilities, initWasm } from "@kreuzberg/wasm";
+```java
+import dev.kreuzberg.Kreuzberg;
+import dev.kreuzberg.ExtractionResult;
+import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
-async function extractDocuments(files: Uint8Array[], mimeTypes: string[]) {
-	const caps = getWasmCapabilities();
-	if (!caps.hasWasm) {
-		throw new Error("WebAssembly not supported");
-	}
+public class Example {
+    public static void main(String[] args) {
+        CompletableFuture<ExtractionResult> future =
+            Kreuzberg.extractFileAsync(Path.of("document.pdf"), null);
 
-	await initWasm();
-
-	const results = await Promise.all(files.map((bytes, index) => extractBytes(bytes, mimeTypes[index])));
-
-	return results.map((r) => ({
-		content: r.content,
-		pageCount: r.metadata?.pageCount,
-	}));
+        future.thenAccept(result -> {
+            System.out.println(result.getContent());
+            System.out.println("Tables: " + result.getTables().size());
+        }).join();
+    }
 }
-
-const fileBytes = [new Uint8Array([1, 2, 3])];
-const mimes = ["application/pdf"];
-
-extractDocuments(fileBytes, mimes)
-	.then((results) => console.log(results))
-	.catch(console.error);
 ```
 
 
@@ -429,45 +398,37 @@ For detailed plugin documentation, visit [Plugin System Guide](https://kreuzberg
 
 
 
+## Embeddings Support
+
+Generate vector embeddings for extracted text using the built-in ONNX Runtime support. Requires ONNX Runtime installation.
+
+**[Embeddings Guide](https://kreuzberg.dev/features/#embeddings)**
+
 
 
 ## Batch Processing
 
 Process multiple documents efficiently:
 
-```ts
-import { extractBytes, initWasm } from "@kreuzberg/wasm";
+```java
+import dev.kreuzberg.Kreuzberg;
+import dev.kreuzberg.ExtractionResult;
+import dev.kreuzberg.KreuzbergException;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
-interface DocumentJob {
-	name: string;
-	bytes: Uint8Array;
-	mimeType: string;
-}
+try {
+    List<String> files = Arrays.asList("doc1.pdf", "doc2.docx", "doc3.pptx");
 
-async function _processBatch(documents: DocumentJob[], concurrency: number = 3) {
-	await initWasm();
+    List<ExtractionResult> results = Kreuzberg.batchExtractFiles(files, null);
 
-	const results: Record<string, string> = {};
-	const queue = [...documents];
-
-	const workers = Array(concurrency)
-		.fill(null)
-		.map(async () => {
-			while (queue.length > 0) {
-				const doc = queue.shift();
-				if (!doc) break;
-
-				try {
-					const result = await extractBytes(doc.bytes, doc.mimeType);
-					results[doc.name] = result.content;
-				} catch (error) {
-					console.error(`Failed to process ${doc.name}:`, error);
-				}
-			}
-		});
-
-	await Promise.all(workers);
-	return results;
+    for (int i = 0; i < results.size(); i++) {
+        ExtractionResult result = results.get(i);
+        System.out.println("File " + (i + 1) + ": " + result.getContent().length() + " characters");
+    }
+} catch (IOException | KreuzbergException e) {
+    e.printStackTrace();
 }
 ```
 
@@ -483,7 +444,7 @@ For advanced configuration options including language detection, table extractio
 ## Documentation
 
 - **[Official Documentation](https://kreuzberg.dev/)**
-- **[API Reference](https://kreuzberg.dev/reference/api-wasm/)**
+- **[API Reference](https://kreuzberg.dev/reference/api-java/)**
 - **[Examples & Guides](https://kreuzberg.dev/guides/)**
 
 ## Contributing

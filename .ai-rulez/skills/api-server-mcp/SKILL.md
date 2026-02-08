@@ -111,7 +111,7 @@ Three tools are registered:
 
 | Tool | Purpose | Required Params |
 |------|---------|----------------|
-| `extract_file` | Extract text/tables/metadata from documents (56+ formats) | `file_path` |
+| `extract_file` | Extract text/tables/metadata from documents (75+ formats) | `file_path` |
 | `batch_extract` | Extract from multiple documents in parallel | `file_paths[]` |
 | `get_capabilities` | List supported formats, features, backends | (none) |
 
