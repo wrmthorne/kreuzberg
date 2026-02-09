@@ -577,8 +577,8 @@ func assertOcrElements(t *testing.T, result *kreuzberg.ExtractionResult, hasElem
 				if el.Confidence == nil {
 					t.Fatalf("OCR element %d has no confidence", i)
 				}
-				if el.Confidence.Recognition <= 0 {
-					t.Fatalf("OCR element %d has invalid confidence recognition: %f", i, el.Confidence.Recognition)
+				if el.Confidence.Recognition == nil || *el.Confidence.Recognition <= 0 {
+					t.Fatalf("OCR element %d has invalid confidence recognition: %v", i, el.Confidence.Recognition)
 				}
 			}
 		}
