@@ -41,7 +41,7 @@ def test_office_djot_basic() -> None:
 
 
 def test_office_doc_legacy() -> None:
-    """Legacy .doc document conversion via LibreOffice."""
+    """Legacy .doc document extraction via native OLE/CFB parsing."""
 
     document_path = helpers.resolve_document("doc/unit_test_lists.doc")
     if not document_path.exists():
@@ -406,7 +406,7 @@ def test_office_ppsx_slideshow() -> None:
 
 
 def test_office_ppt_legacy() -> None:
-    """Legacy PowerPoint .ppt file requiring LibreOffice conversion."""
+    """Legacy PowerPoint .ppt extraction via native OLE/CFB parsing."""
 
     document_path = helpers.resolve_document("ppt/simple.ppt")
     if not document_path.exists():

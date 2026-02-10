@@ -591,6 +591,9 @@ export interface ExtractionConfig {
 	/** Force OCR processing even for documents with selectable text. Useful for scanned documents. Default: false. */
 	forceOcr?: boolean;
 
+	/** Include structured document tree in the extraction result. Default: false. */
+	includeDocumentStructure?: boolean;
+
 	/** Chunking configuration for splitting documents into smaller pieces for RAG or vector DB. */
 	chunking?: ChunkingConfig;
 
@@ -1164,6 +1167,9 @@ export interface ExtractionResult {
 
 	/** Granular OCR elements (words, lines, blocks) when OCR element extraction is enabled, null otherwise */
 	ocrElements?: OcrElement[] | null;
+
+	/** Structured document tree when include_document_structure is enabled, null otherwise */
+	document?: Record<string, unknown> | null;
 }
 
 /** Post-processor execution stage in the extraction pipeline. */

@@ -300,13 +300,19 @@ module E2ERuby
         expect(nodes).not_to be_nil
         expect(nodes.length).to be >= min_node_count if min_node_count
         if node_types_include
-          found_types = nodes.map { |n| (n.node_type || n.type) }.compact.uniq
+          found_types = nodes.map { |n|
+            c = n.respond_to?(:content) ? n.content : n
+            c.is_a?(Hash) ? (c['node_type'] || c[:node_type]) : nil
+          }.compact.uniq
           node_types_include.each do |t|
             expect(found_types).to include(t)
           end
         end
         if has_groups.is_a?(TrueClass) || has_groups.is_a?(FalseClass)
-          has_group_nodes = nodes.any? { |n| (n.node_type || n.type) == 'group' }
+          has_group_nodes = nodes.any? { |n|
+            c = n.respond_to?(:content) ? n.content : n
+            (c.is_a?(Hash) ? (c['node_type'] || c[:node_type]) : nil) == 'group'
+          }
           expect(has_group_nodes).to eq(has_groups)
         end
       else

@@ -144,7 +144,7 @@ defmodule E2E.OcrTest do
     test "ocr_paddle_pdf_scanned" do
       case E2E.Helpers.run_fixture(
         "ocr_paddle_pdf_scanned",
-        "pdfs/ocr_test.pdf",
+        "pdf/ocr_test.pdf",
         %{force_ocr: true, ocr: %{backend: "paddle-ocr", language: "en"}},
         requirements: ["paddle-ocr", "paddle-ocr", "onnxruntime"],
         notes: "Requires PaddleOCR with ONNX Runtime",

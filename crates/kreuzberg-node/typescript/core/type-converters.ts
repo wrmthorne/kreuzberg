@@ -252,6 +252,7 @@ function convertResult(rawResult: unknown): ExtractionResult {
 			images: null,
 			elements: null,
 			pages: null,
+			document: null,
 		};
 	}
 
@@ -275,6 +276,8 @@ function convertResult(rawResult: unknown): ExtractionResult {
 		images: null,
 		elements: null,
 		pages: null,
+		// biome-ignore lint/complexity/useLiteralKeys: required for strict TypeScript noPropertyAccessFromIndexSignature
+		document: (result["document"] as Record<string, unknown> | null) ?? null,
 	};
 
 	// biome-ignore lint/complexity/useLiteralKeys: required for strict TypeScript noPropertyAccessFromIndexSignature

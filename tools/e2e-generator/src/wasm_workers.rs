@@ -452,7 +452,7 @@ export const assertions = {
                 expect(hasGroupNodes).toBe(hasGroups);
             }
         } else {
-            expect(doc).toBeUndefined();
+            expect(doc == null).toBe(true);
         }
     },
 };

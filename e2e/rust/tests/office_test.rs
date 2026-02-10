@@ -51,7 +51,7 @@ fn test_office_djot_basic() {
 
 #[test]
 fn test_office_doc_legacy() {
-    // Legacy .doc document conversion via LibreOffice.
+    // Legacy .doc document extraction via native OLE/CFB parsing.
 
     let document_path = resolve_document("doc/unit_test_lists.doc");
     if !document_path.exists() {
@@ -649,7 +649,7 @@ fn test_office_ppsx_slideshow() {
 
 #[test]
 fn test_office_ppt_legacy() {
-    // Legacy PowerPoint .ppt file requiring LibreOffice conversion.
+    // Legacy PowerPoint .ppt extraction via native OLE/CFB parsing.
 
     let document_path = resolve_document("ppt/simple.ppt");
     if !document_path.exists() {

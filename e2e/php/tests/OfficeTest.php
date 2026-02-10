@@ -51,7 +51,7 @@ class OfficeTest extends TestCase
     }
 
     /**
-     * Legacy .doc document conversion via LibreOffice.
+     * Legacy .doc document extraction via native OLE/CFB parsing.
      */
     public function test_office_doc_legacy(): void
     {
@@ -512,7 +512,7 @@ class OfficeTest extends TestCase
     }
 
     /**
-     * Legacy PowerPoint .ppt file requiring LibreOffice conversion.
+     * Legacy PowerPoint .ppt extraction via native OLE/CFB parsing.
      */
     public function test_office_ppt_legacy(): void
     {

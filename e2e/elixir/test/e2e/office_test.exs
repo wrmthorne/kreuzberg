@@ -55,8 +55,8 @@ defmodule E2E.OfficeTest do
         "office_doc_legacy",
         "doc/unit_test_lists.doc",
         nil,
-        requirements: ["libreoffice", "libreoffice"],
-        notes: "LibreOffice must be installed for conversion.",
+        requirements: ["office"],
+        notes: "Requires the office feature.",
         skip_if_missing: true
       ) do
         {:ok, result} ->
@@ -588,8 +588,8 @@ defmodule E2E.OfficeTest do
         "office_ppt_legacy",
         "ppt/simple.ppt",
         nil,
-        requirements: ["libreoffice", "libreoffice"],
-        notes: "Skip if LibreOffice conversion is unavailable.",
+        requirements: ["office"],
+        notes: "Requires the office feature.",
         skip_if_missing: true
       ) do
         {:ok, result} ->

@@ -95,6 +95,9 @@ class Helpers
         if (isset($config['enable_quality_processing'])) {
             $params['enableQualityProcessing'] = (bool)$config['enable_quality_processing'];
         }
+        if (isset($config['include_document_structure'])) {
+            $params['includeDocumentStructure'] = (bool)$config['include_document_structure'];
+        }
         if (isset($config['output_format'])) {
             $params['outputFormat'] = $config['output_format'];
         }
@@ -561,6 +564,87 @@ class Helpers
             return $lhs === $rhs;
         }
         return $lhs == $rhs;
+    }
+
+    public static function assertDocument(
+        ExtractionResult $result,
+        bool $hasDocument,
+        ?int $minNodeCount = null,
+        ?array $nodeTypesInclude = null,
+        ?bool $hasGroups = null
+    ): void {
+        $document = $result->document ?? null;
+        if ($hasDocument) {
+            Assert::assertNotNull($document, 'Expected document but got null');
+            $nodes = is_array($document) ? $document : ($document->nodes ?? []);
+            Assert::assertNotNull($nodes, 'Expected document.nodes but got null');
+            if ($minNodeCount !== null) {
+                Assert::assertGreaterThanOrEqual(
+                    $minNodeCount,
+                    count($nodes),
+                    sprintf('Expected at least %d nodes, found %d', $minNodeCount, count($nodes))
+                );
+            }
+            if ($nodeTypesInclude !== null && !empty($nodeTypesInclude)) {
+                $foundTypes = [];
+                foreach ($nodes as $node) {
+                    $content = is_object($node) ? ($node->content ?? null) : ($node['content'] ?? null);
+                    if ($content !== null) {
+                        $nodeType = is_object($content) ? ($content->node_type ?? $content->nodeType ?? null) : ($content['node_type'] ?? null);
+                        if ($nodeType !== null) {
+                            $foundTypes[] = $nodeType;
+                        }
+                    }
+                }
+                foreach ($nodeTypesInclude as $type) {
+                    Assert::assertContains(
+                        $type,
+                        $foundTypes,
+                        sprintf("Expected node type '%s' not found in %s", $type, json_encode($foundTypes))
+                    );
+                }
+            }
+            if ($hasGroups !== null) {
+                $hasGroupNodes = false;
+                foreach ($nodes as $node) {
+                    $content = is_object($node) ? ($node->content ?? null) : ($node['content'] ?? null);
+                    if ($content !== null) {
+                        $nodeType = is_object($content) ? ($content->node_type ?? $content->nodeType ?? null) : ($content['node_type'] ?? null);
+                        if ($nodeType === 'group') {
+                            $hasGroupNodes = true;
+                            break;
+                        }
+                    }
+                }
+                Assert::assertEquals($hasGroups, $hasGroupNodes);
+            }
+        } else {
+            Assert::assertNull($document, 'Expected document to be null');
+        }
+    }
+
+    public static function assertOcrElements(
+        ExtractionResult $result,
+        ?bool $hasElements = null,
+        ?bool $elementsHaveGeometry = null,
+        ?bool $elementsHaveConfidence = null,
+        ?int $minCount = null
+    ): void {
+        $ocrElements = $result->ocrElements ?? null;
+        if ($hasElements) {
+            Assert::assertNotNull($ocrElements, 'Expected ocr_elements but got null');
+            Assert::assertIsArray($ocrElements);
+            Assert::assertNotEmpty($ocrElements, 'Expected ocr_elements to be non-empty');
+        }
+        if (is_array($ocrElements)) {
+            if ($minCount !== null) {
+                Assert::assertGreaterThanOrEqual(
+                    $minCount,
+                    count($ocrElements),
+                    sprintf('Expected at least %d ocr_elements, found %d', $minCount, count($ocrElements))
+                );
+            }
+        }
     }
 }
 "#;

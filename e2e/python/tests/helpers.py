@@ -333,32 +333,41 @@ def assert_ocr_elements(
                     pytest.fail(f"OCR element {i} has invalid confidence recognition: {recognition}")
 
 
+def _get_field(obj: Any, *keys: str) -> Any:
+    """Get a field from an object, supporting both dict and attribute access."""
+    for key in keys:
+        val = obj.get(key) if isinstance(obj, dict) else getattr(obj, key, None)
+        if val is not None:
+            return val
+    return None
+
+
 def _get_document_nodes(document: Any) -> list[Any]:
     if isinstance(document, (list, tuple)):
         return list(document)
-    nodes = getattr(document, "nodes", None)
+    nodes = _get_field(document, "nodes")
     if nodes is None:
         pytest.fail("Expected document.nodes but got None")
     return nodes
 
 
+def _get_node_type(node: Any) -> str | None:
+    content = _get_field(node, "content")
+    if content is not None:
+        return _get_field(content, "node_type", "type")
+    return _get_field(node, "node_type", "type")
+
+
 def _get_node_types(nodes: list[Any]) -> set[str]:
     found: set[str] = set()
     for node in nodes:
-        node_type = getattr(node, "node_type", None)
-        if node_type is None:
-            node_type = getattr(node, "type", None)
+        node_type = _get_node_type(node)
         if node_type:
             found.add(node_type)
     return found
 
 
 def _check_groups(nodes: list[Any], has_groups: bool) -> None:
-    def _get_node_type(node: Any) -> str | None:
-        node_type = getattr(node, "node_type", None)
-        if node_type is None:
-            node_type = getattr(node, "type", None)
-        return node_type
 
     has_group_nodes = any(_get_node_type(n) == "group" for n in nodes)
     if has_groups and not has_group_nodes:

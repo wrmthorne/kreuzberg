@@ -134,7 +134,7 @@ class OcrTest extends TestCase
      */
     public function test_ocr_paddle_pdf_scanned(): void
     {
-        $documentPath = Helpers::resolveDocument('pdfs/ocr_test.pdf');
+        $documentPath = Helpers::resolveDocument('pdf/ocr_test.pdf');
         if (!file_exists($documentPath)) {
             $this->markTestSkipped('Skipping ocr_paddle_pdf_scanned: missing document at ' . $documentPath);
         }

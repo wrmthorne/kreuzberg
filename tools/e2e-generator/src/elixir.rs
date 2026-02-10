@@ -449,6 +449,62 @@ defmodule E2E.Helpers do
     result
   end
 
+  def assert_document(result, opts) do
+    document = result[:document] || result.document
+
+    if opts[:has_document] do
+      assert document != nil, "Expected document but got nil"
+      nodes = if is_list(document), do: document, else: document[:nodes] || document["nodes"] || []
+      nodes_len = length(nodes)
+
+      if opts[:min_node_count] && nodes_len < opts[:min_node_count] do
+        flunk("Document node count #{nodes_len} is less than minimum #{opts[:min_node_count]}")
+      end
+
+      if opts[:node_types_include] do
+        found_types =
+          nodes
+          |> Enum.map(fn node ->
+            content = node[:content] || node["content"]
+            if content, do: content[:node_type] || content["node_type"], else: node[:node_type] || node["node_type"]
+          end)
+          |> Enum.reject(&is_nil/1)
+          |> Enum.uniq()
+
+        if !Enum.all?(opts[:node_types_include], fn t -> Enum.member?(found_types, t) end) do
+          flunk("Document node types #{inspect(found_types)} do not include all of #{inspect(opts[:node_types_include])}")
+        end
+      end
+
+      if is_boolean(opts[:has_groups]) do
+        has_group_nodes =
+          Enum.any?(nodes, fn node ->
+            content = node[:content] || node["content"]
+            node_type = if content, do: content[:node_type] || content["node_type"], else: node[:node_type] || node["node_type"]
+            node_type == "group"
+          end)
+
+        assert has_group_nodes == opts[:has_groups],
+               "Expected has_groups=#{opts[:has_groups]} but got #{has_group_nodes}"
+      end
+    else
+      assert document == nil, "Expected document to be nil but got #{inspect(document)}"
+    end
+
+    result
+  end
+
+  def assert_ocr_elements(result, opts) do
+    ocr_elements = result[:ocr_elements] || result.ocr_elements || []
+    count = length(ocr_elements)
+
+    if opts[:min_count] && count < opts[:min_count] do
+      flunk("OCR element count #{count} is less than minimum #{opts[:min_count]}")
+    end
+
+    result
+  end
+
   # Private helpers
 
   defp fetch_metadata_value(metadata, path) do

@@ -871,6 +871,10 @@ pub fn parse_extraction_config(ruby: &Ruby, opts: Option<RHash>) -> Result<Extra
             config.force_ocr = bool::try_convert(val)?;
         }
 
+        if let Some(val) = get_kw(ruby, hash, "include_document_structure") {
+            config.include_document_structure = bool::try_convert(val)?;
+        }
+
         if let Some(val) = get_kw(ruby, hash, "ocr")
             && !val.is_nil()
         {

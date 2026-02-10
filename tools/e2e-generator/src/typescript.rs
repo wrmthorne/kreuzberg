@@ -549,7 +549,10 @@ export const chunkAssertions = {
                 const foundTypes = new Set<string>();
                 for (const node of nodes) {
                     if (isPlainRecord(node)) {
-                        const nodeType = (node.nodeType ?? node.type) as string | undefined;
+                        const content = node.content as Record<string, unknown> | undefined;
+                        const nodeType = content && typeof content === "object"
+                            ? (content.node_type ?? content.nodeType ?? content.type) as string | undefined
+                            : (node.node_type ?? node.nodeType ?? node.type) as string | undefined;
                         if (nodeType) {
                             foundTypes.add(nodeType);
                         }
@@ -563,7 +566,10 @@ export const chunkAssertions = {
                 let hasGroupNodes = false;
                 for (const node of nodes) {
                     if (isPlainRecord(node)) {
-                        const nodeType = (node.nodeType ?? node.type) as string | undefined;
+                        const content = node.content as Record<string, unknown> | undefined;
+                        const nodeType = content && typeof content === "object"
+                            ? (content.node_type ?? content.nodeType ?? content.type) as string | undefined
+                            : (node.node_type ?? node.nodeType ?? node.type) as string | undefined;
                         if (nodeType === "group") {
                             hasGroupNodes = true;
                             break;
@@ -573,7 +579,7 @@ export const chunkAssertions = {
                 expect(hasGroupNodes).toBe(hasGroups);
             }
         } else {
-            expect(document).toBeUndefined();
+            expect(document == null).toBe(true);
         }
     },
 };

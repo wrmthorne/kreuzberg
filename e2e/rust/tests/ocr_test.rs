@@ -277,7 +277,7 @@ fn test_ocr_paddle_markdown() {
 fn test_ocr_paddle_pdf_scanned() {
     // Scanned PDF requires PaddleOCR to extract text.
 
-    let document_path = resolve_document("pdfs/ocr_test.pdf");
+    let document_path = resolve_document("pdf/ocr_test.pdf");
     if !document_path.exists() {
         println!(
             "Skipping ocr_paddle_pdf_scanned: missing document at {}",
