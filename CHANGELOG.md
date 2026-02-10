@@ -1617,6 +1617,11 @@ See [Migration Guide](https://docs.kreuzberg.dev/migration/v3-to-v4/) for detail
 - [Format Support](reference/formats.md) - Supported file formats
 - [Extraction Guide](guides/extraction.md) - Extraction examples
 
+[4.2.15]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.2.15
+[4.2.14]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.2.14
+[4.2.13]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.2.13
+[4.2.12]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.2.12
+[4.2.11]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.2.11
 [4.2.10]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.2.10
 [4.2.9]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.2.9
 [4.2.8]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.2.8
@@ -1667,7 +1672,7 @@ See [Migration Guide](https://docs.kreuzberg.dev/migration/v3-to-v4/) for detail
 [4.0.0-rc.4]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.0.0-rc.4
 [4.0.0-rc.3]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.0.0-rc.3
 [4.0.0-rc.2]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.0.0-rc.2
-[4.0.0-rc.1]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v3.22.0
+[4.0.0-rc.1]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v4.0.0-rc.1
 [3.22.0]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v3.22.0
 [3.21.0]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v3.21.0
 [3.20.2]: https://github.com/kreuzberg-dev/kreuzberg/releases/tag/v3.20.2
