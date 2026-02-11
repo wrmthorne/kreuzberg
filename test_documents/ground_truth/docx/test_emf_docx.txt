@@ -2,12 +2,12 @@ Test with three images in unusual formats
 
 Raster in emf:
 
-<!-- image -->
+![](media/image1.emf){width="1.9512587489063866in" height="1.973772965879265in"}
 
 Vector in emf:
 
-<!-- image -->
+![](media/image2.emf){width="1.8986493875765529in" height="1.973695319335083in"}
 
 Raster in webp:
 
-<!-- image -->
+![A cartoon duck holding a paper Description automatically generated](media/image3.png){width="1.8194444444444444in" height="1.8194444444444444in"}

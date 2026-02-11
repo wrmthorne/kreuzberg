@@ -1,8 +1,10 @@
-Transcript
+**Transcript**
+
 February 20, 2025, 8:32PM
 
-This is test 1   0:08
+![](media/image1.png){width="0.22916666666666666in" height="0.22916666666666666in"}![](media/image2.png){width="0.3020833333333333in" height="0.3020833333333333in"}**\
+This is test 1** 0:08\
 Correct, he is not.
 
-This is test 2 0:16
+![](media/image2.png){width="0.5694444444444444in" height="0.5694444444444444in"}**This is test 2** 0:16\
 Yeah, exactly.
